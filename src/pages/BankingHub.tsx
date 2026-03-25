@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import { 
@@ -35,6 +35,8 @@ import {
   formatCurrency
 } from "../data/bankingData";
 import { Skeleton, SkeletonCard, SkeletonRow } from "../components/ui/Skeleton";
+import { useAuth } from "../AuthContext";
+import { onBalanceChange, getTransactionHistory } from "../services/beautyBankService";
 
 const container = {
   hidden: { opacity: 0 },
@@ -50,7 +52,16 @@ const BankingHub: React.FC = () => {
   const [showCreateGoal, setShowCreateGoal] = useState(false);
   const [viewMode, setViewMode] = useState<"overview" | "goals" | "transactions">("overview");
   const [isLoading] = useState(false);
-  
+  const [liveBalance, setLiveBalance] = useState<number | null>(null);
+  const { user } = useAuth();
+
+  // Real-time balance listener
+  useEffect(() => {
+    if (!user) return;
+    const unsub = onBalanceChange(user.uid, (bal) => setLiveBalance(bal));
+    return () => unsub();
+  }, [user]);
+
   const insights = getBankingInsights();
   const currentTier = bankingTiers[bankingAccount.accountTier];
   const projectedValue12Months = getProjectedValue(12);
@@ -251,7 +262,7 @@ const BankingHub: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-white/70 text-xs uppercase tracking-widest mb-1">Principal</p>
-                  <p className="text-lg font-bold">{formatCurrency(bankingAccount.totalBanked)}</p>
+                  <p className="text-lg font-bold">{formatCurrency(liveBalance !== null ? liveBalance : bankingAccount.totalBanked)}</p>
                 </div>
                 <div>
                   <p className="text-white/70 text-xs uppercase tracking-widest mb-1">Interest Earned</p>

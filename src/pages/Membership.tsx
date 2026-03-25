@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../AuthContext";
-import { db } from "../firebase";
-import { collection, getDocs, doc, updateDoc, setDoc } from "firebase/firestore";
 import { MembershipTier } from "../types";
 import { formatCurrency } from "../lib/utils";
 import { Check, Sparkles, Zap, Crown } from "lucide-react";
+import { getMembershipTiers, updateMembership } from "../services/membershipService";
 import { addMonthlyCredits } from "../services/membershipService";
 
 const Membership: React.FC = () => {
@@ -13,8 +12,8 @@ const Membership: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getDocs(collection(db, "membershipTiers")).then((snap) => {
-      setTiers(snap.docs.map((d) => ({ id: d.id, ...d.data() } as MembershipTier)));
+    getMembershipTiers().then((t) => {
+      setTiers(t);
       setLoading(false);
     });
   }, []);
@@ -23,10 +22,7 @@ const Membership: React.FC = () => {
     if (!user) return;
     
     try {
-      await updateDoc(doc(db, "users", user.uid), {
-        membershipTierId: tier.id,
-        status: "active"
-      });
+      await updateMembership(user.uid, tier.id);
       
       // Initial credit allocation
       await addMonthlyCredits(user.uid, tier);

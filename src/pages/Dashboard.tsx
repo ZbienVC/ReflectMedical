@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   CreditCard,
@@ -14,6 +14,9 @@ import {
   Bell,
 } from "lucide-react";
 import DashboardLayout from "../components/layout/DashboardLayout";
+import { useAuth } from "../AuthContext";
+import { onBalanceChange } from "../services/beautyBankService";
+import { getBookings } from "../services/treatmentService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface StatCardProps {
@@ -103,11 +106,50 @@ const Skeleton: React.FC<{ className?: string }> = ({ className = "" }) => (
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"activity" | "upcoming">("activity");
-  const isLoading = false; // swap to true to preview skeletons
+  const [isLoading, setIsLoading] = useState(false);
+  const [liveBalance, setLiveBalance] = useState<number | null>(null);
+  const [firebaseTransactions, setFirebaseTransactions] = useState<Transaction[] | null>(null);
+  const { user, profile } = useAuth();
 
-  const completedTransactions = TRANSACTIONS.filter((t) => t.status === "completed");
-  const upcomingTransactions = TRANSACTIONS.filter((t) => t.status === "upcoming");
+  // Real-time balance listener
+  useEffect(() => {
+    if (!user) return;
+    const unsub = onBalanceChange(user.uid, (bal) => setLiveBalance(bal));
+    return () => unsub();
+  }, [user]);
+
+  // Load bookings from Firebase
+  useEffect(() => {
+    if (!user) return;
+    setIsLoading(true);
+    getBookings(user.uid)
+      .then((bookings) => {
+        if (bookings.length > 0) {
+          const mapped: Transaction[] = bookings.map((b) => ({
+            id: b.id,
+            treatment: b.serviceName,
+            date: new Date(b.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+            amount: 0,
+            saved: 0,
+            status: b.status === "canceled" ? "cancelled" : b.status,
+          }));
+          setFirebaseTransactions(mapped);
+        }
+      })
+      .catch(() => {/* fall back to mock */})
+      .finally(() => setIsLoading(false));
+  }, [user]);
+
+  const transactions = firebaseTransactions ?? TRANSACTIONS;
+  const completedTransactions = transactions.filter((t) => t.status === "completed");
+  const upcomingTransactions = transactions.filter((t) => t.status === "upcoming");
   const totalSaved = completedTransactions.reduce((sum, t) => sum + t.saved, 0);
+
+  const displayName = profile?.name ?? user?.displayName ?? "Sarah";
+  const beautyBalance = liveBalance !== null ? liveBalance : 1420;
+  const membershipLabel = profile?.membershipTierId
+    ? profile.membershipTierId.charAt(0).toUpperCase() + profile.membershipTierId.slice(1) + " Member"
+    : "Evolve Member";
 
   return (
     <DashboardLayout>
@@ -119,12 +161,12 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
         >
           <div>
-            <h1 className="text-2xl font-bold text-white">Good morning, Sarah 👋</h1>
+            <h1 className="text-2xl font-bold text-white">Good morning, {displayName} 👋</h1>
             <p className="text-[#71717A] text-sm mt-1">Here's your Reflect Medical dashboard</p>
           </div>
           <div className="flex items-center gap-3">
             <span className="bg-purple-600/20 text-purple-300 text-sm font-semibold px-4 py-1.5 rounded-full border border-purple-500/30">
-              Evolve Member
+              {membershipLabel}
             </span>
             <button className="w-9 h-9 rounded-xl bg-[#1C1C24] border border-white/10 flex items-center justify-center text-[#A1A1AA] hover:text-white transition-colors">
               <Bell className="w-4 h-4" />
@@ -141,7 +183,7 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               label="Beauty Balance"
-              value="$1,420"
+              value={`$${beautyBalance.toLocaleString()}`}
               sub="Credits available to spend"
               icon={<CreditCard className="w-5 h-5 text-white" />}
               color="bg-gradient-to-br from-purple-600 to-purple-700"
