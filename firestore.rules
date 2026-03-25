@@ -1,83 +1,19 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ===============================================================
-    // Assumed Data Model
-    // ===============================================================
-    //
-    // Collection: membershipTiers
-    // Fields: name, monthlyPrice, monthlyCredits, toxinDiscountBotox, toxinDiscountDysport, fillerDiscountPercent, deviceDiscountPercent, retailDiscountPercent
-    //
-    // Collection: services
-    // Fields: name, category, basePrice
-    //
-    // Collection: users
-    // Fields: uid, name, email, membershipTierId, beautyBucksBalance, joinDate, status, role
-    //
-    // Collection: users/{userId}/transactions
-    // Fields: userId, serviceId, serviceName, basePrice, discountedPrice, beautyBucksUsed, finalPrice, savings, createdAt
-    //
-    // Collection: users/{userId}/ledger
-    // Fields: userId, amount, type, description, expirationDate, createdAt
-    //
-    // Collection: users/{userId}/appointments
-    // Fields: userId, serviceId, serviceName, date, status
-    //
-    // ===============================================================
-
-    // Helper Functions
-    function isAuthenticated() {
-      return request.auth != null;
+    // Users can only read/write their own data
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
-    function isAdmin() {
-      return isAuthenticated() && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         request.auth.token.email == "zbienstock@gmail.com");
-    }
-
-    function isValidUser(data) {
-      return data.keys().hasAll(['uid', 'email', 'status']) &&
-             data.uid is string &&
-             data.email is string &&
-             data.status in ['active', 'paused', 'canceled'] &&
-             data.beautyBucksBalance is number;
-    }
-
-    // Rules
+    // Public read for membership tiers
     match /membershipTiers/{tierId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if false;
     }
-
-    match /services/{serviceId} {
+    // Treatments are public read
+    match /treatments/{treatmentId} {
       allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
-      allow update: if (isOwner(userId) && (isAdmin() || (request.resource.data.role == resource.data.role))) || isAdmin();
-    }
-
-    match /users/{userId}/transactions/{txId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) || isAdmin();
-    }
-
-    match /users/{userId}/ledger/{ledgerId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) || isAdmin();
-    }
-
-    match /users/{userId}/appointments/{apptId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow write: if isOwner(userId) || isAdmin();
+      allow write: if false;
     }
   }
 }
