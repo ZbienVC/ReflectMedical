@@ -61,10 +61,10 @@ const SignUp: React.FC = () => {
   };
 
   const inputClass = (field: string) =>
-    `w-full bg-[#0F0F14] border ${fieldErrors[field] ? "border-red-500/50" : "border-white/10"} rounded-xl pl-10 pr-4 py-3 text-white text-sm placeholder:text-[#52525B] focus:outline-none focus:border-purple-500 transition-colors`;
+    `w-full bg-white dark:bg-gray-700 border ${fieldErrors[field] ? "border-red-400 dark:border-red-500" : "border-gray-200 dark:border-gray-600"} rounded-xl pl-10 pr-4 py-3 text-gray-900 dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-violet-500 transition-colors`;
 
   return (
-    <div className="min-h-screen bg-[#0F0F14] flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-[#F8F7FB] dark:bg-[#0B0B0F] flex items-center justify-center px-4 py-12">
       <motion.div
         className="w-full max-w-md"
         initial={{ opacity: 0, y: 24 }}
@@ -73,16 +73,16 @@ const SignUp: React.FC = () => {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-800 mb-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-violet-800 mb-4">
             <span className="text-white font-black text-xl">R</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">Create your account</h1>
-          <p className="text-[#71717A] text-sm mt-1">Join Reflect Medical today</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create your account</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Join Reflect Medical today</p>
         </div>
 
-        <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-8">
           {error && (
-            <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
               {error}
             </div>
           )}
@@ -90,9 +90,9 @@ const SignUp: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#A1A1AA] mb-2">First Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
                     value={firstName}
@@ -101,12 +101,12 @@ const SignUp: React.FC = () => {
                     className={inputClass("firstName")}
                   />
                 </div>
-                {fieldErrors.firstName && <p className="text-red-400 text-xs mt-1">{fieldErrors.firstName}</p>}
+                {fieldErrors.firstName && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.firstName}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Last Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
                     value={lastName}
@@ -115,14 +115,14 @@ const SignUp: React.FC = () => {
                     className={inputClass("lastName")}
                   />
                 </div>
-                {fieldErrors.lastName && <p className="text-red-400 text-xs mt-1">{fieldErrors.lastName}</p>}
+                {fieldErrors.lastName && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.lastName}</p>}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="email"
                   value={email}
@@ -131,58 +131,57 @@ const SignUp: React.FC = () => {
                   className={inputClass("email")}
                 />
               </div>
-              {fieldErrors.email && <p className="text-red-400 text-xs mt-1">{fieldErrors.email}</p>}
+              {fieldErrors.email && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.email}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Password</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 6 characters"
-                  className={`w-full bg-[#0F0F14] border ${fieldErrors.password ? "border-red-500/50" : "border-white/10"} rounded-xl pl-10 pr-10 py-3 text-white text-sm placeholder:text-[#52525B] focus:outline-none focus:border-purple-500 transition-colors`}
+                  className={`w-full bg-white dark:bg-gray-700 border ${fieldErrors.password ? "border-red-400 dark:border-red-500" : "border-gray-200 dark:border-gray-600"} rounded-xl pl-10 pr-10 py-3 text-gray-900 dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-violet-500 transition-colors`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717A] hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {fieldErrors.password && <p className="text-red-400 text-xs mt-1">{fieldErrors.password}</p>}
+              {fieldErrors.password && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.password}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Confirm Password</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
                   className={inputClass("confirmPassword")}
                 />
               </div>
-              {fieldErrors.confirmPassword && <p className="text-red-400 text-xs mt-1">{fieldErrors.confirmPassword}</p>}
+              {fieldErrors.confirmPassword && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{fieldErrors.confirmPassword}</p>}
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all text-sm mt-2"
+              className="w-full bg-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all text-sm mt-2"
             >
               {loading ? "Creating account..." : "Create Account"}
             </button>
           </form>
 
-          <p className="text-center text-sm text-[#71717A] mt-6">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
             Already have an account?{" "}
-            <Link to="/login" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
+            <Link to="/login" className="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium transition-colors">
               Sign in
             </Link>
           </p>

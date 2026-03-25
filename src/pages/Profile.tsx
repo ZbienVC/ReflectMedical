@@ -16,12 +16,6 @@ interface ProfileData {
   joinDate: string;
 }
 
-const TIER_COLORS: Record<string, string> = {
-  silver: "bg-gray-500/20 text-gray-300 border-gray-500/30",
-  gold: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  platinum: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-};
-
 const Profile: React.FC = () => {
   const { user, profile, signOut, resetPassword } = useAuth();
   const navigate = useNavigate();
@@ -113,207 +107,206 @@ const Profile: React.FC = () => {
     : "No Membership";
 
   return (
-      <div className="space-y-6 pb-12 max-w-2xl mx-auto">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Profile</h1>
-          <p className="text-[#71717A] text-sm mt-1">Manage your account and membership.</p>
-        </div>
-
-        {/* Avatar + Tier */}
-        <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-6 flex items-center gap-5">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-black text-xl">{loading ? "…" : initials}</span>
-          </div>
-          <div>
-            <p className="text-white font-bold text-lg">{data.firstName} {data.lastName}</p>
-            <p className="text-[#71717A] text-sm">{data.email}</p>
-            {data.membershipTier && (
-              <span className={`inline-block mt-1.5 text-xs font-semibold px-3 py-0.5 rounded-full border ${TIER_COLORS[data.membershipTier] ?? "bg-purple-500/20 text-purple-400 border-purple-500/30"}`}>
-                {tierLabel} Member
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Profile Info */}
-        <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-white font-semibold">Personal Information</h2>
-            {!editing ? (
-              <button
-                onClick={() => { setEditing(true); setEditData(data); }}
-                className="flex items-center gap-1.5 text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors"
-              >
-                <Edit3 className="w-3.5 h-3.5" /> Edit
-              </button>
-            ) : (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setEditing(false)}
-                  className="text-[#71717A] hover:text-white text-sm transition-colors px-3 py-1.5"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="bg-purple-600 hover:bg-purple-500 disabled:opacity-60 text-white text-sm font-medium px-4 py-1.5 rounded-lg transition-colors"
-                >
-                  {saving ? "Saving..." : "Save"}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {saved && (
-            <div className="mb-4 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm flex items-center gap-2">
-              <Check className="w-4 h-4" /> Profile saved successfully.
-            </div>
-          )}
-
-          {editing ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#A1A1AA] mb-2">First Name</label>
-                  <input
-                    type="text"
-                    value={editData.firstName}
-                    onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
-                    className="w-full bg-[#0F0F14] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Last Name</label>
-                  <input
-                    type="text"
-                    value={editData.lastName}
-                    onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
-                    className="w-full bg-[#0F0F14] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Phone</label>
-                <input
-                  type="tel"
-                  value={editData.phone}
-                  onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                  className="w-full bg-[#0F0F14] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Date of Birth</label>
-                <input
-                  type="date"
-                  value={editData.dob}
-                  onChange={(e) => setEditData({ ...editData, dob: e.target.value })}
-                  className="w-full bg-[#0F0F14] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-purple-500 transition-colors"
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {[
-                { icon: <User className="w-4 h-4" />, label: "Full Name", value: `${data.firstName} ${data.lastName}`.trim() || "—" },
-                { icon: <Mail className="w-4 h-4" />, label: "Email", value: data.email || "—" },
-                { icon: <Phone className="w-4 h-4" />, label: "Phone", value: data.phone || "—" },
-                { icon: <Calendar className="w-4 h-4" />, label: "Date of Birth", value: data.dob || "—" },
-                { icon: <Calendar className="w-4 h-4" />, label: "Member Since", value: data.joinDate ? new Date(data.joinDate).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "—" },
-              ].map((row) => (
-                <div key={row.label} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0">
-                  <div className="w-8 h-8 rounded-lg bg-purple-600/10 flex items-center justify-center text-purple-400 flex-shrink-0">
-                    {row.icon}
-                  </div>
-                  <div>
-                    <p className="text-[#71717A] text-xs">{row.label}</p>
-                    <p className="text-white text-sm font-medium">{row.value}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Account Actions */}
-        <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-6 space-y-3">
-          <h2 className="text-white font-semibold mb-4">Account</h2>
-          <button
-            onClick={handlePasswordReset}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0F0F14] hover:bg-white/5 border border-white/5 transition-colors text-left"
-          >
-            <Key className="w-4 h-4 text-purple-400" />
-            <div>
-              <p className="text-white text-sm font-medium">Change Password</p>
-              <p className="text-[#71717A] text-xs">
-                {resetSent ? "Reset link sent! Check your email." : "Send a password reset link to your email"}
-              </p>
-            </div>
-          </button>
-        </div>
-
-        {/* Danger Zone */}
-        <div className="bg-[#1C1C24] rounded-2xl border border-red-500/20 p-6">
-          <h2 className="text-red-400 font-semibold mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" /> Danger Zone
-          </h2>
-          <button
-            onClick={() => setShowCancelModal(true)}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-colors text-left"
-          >
-            <X className="w-4 h-4 text-red-400" />
-            <div>
-              <p className="text-red-400 text-sm font-medium">Cancel Membership</p>
-              <p className="text-[#71717A] text-xs">This will cancel your membership at the end of the billing period.</p>
-            </div>
-          </button>
-        </div>
-
-        {/* Cancel Modal */}
-        <AnimatePresence>
-          {showCancelModal && (
-            <motion.div
-              className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowCancelModal(false)}
-            >
-              <motion.div
-                className="bg-[#1C1C24] rounded-2xl border border-white/10 p-6 max-w-sm w-full"
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-                  <AlertTriangle className="w-6 h-6 text-red-400" />
-                </div>
-                <h3 className="text-white font-bold text-center mb-2">Cancel Membership?</h3>
-                <p className="text-[#71717A] text-sm text-center mb-6">
-                  Your membership will be canceled and you'll lose access to credits and member discounts.
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowCancelModal(false)}
-                    className="flex-1 bg-[#0F0F14] border border-white/10 text-white py-3 rounded-xl text-sm font-medium hover:bg-white/5 transition-colors"
-                  >
-                    Keep Membership
-                  </button>
-                  <button
-                    onClick={handleCancelMembership}
-                    className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-xl text-sm font-medium transition-colors"
-                  >
-                    Yes, Cancel
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+    <div className="space-y-6 pb-12 max-w-2xl mx-auto">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Profile</h1>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Manage your account and membership.</p>
       </div>
+
+      {/* Avatar + Tier */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 flex items-center gap-5">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-600 to-violet-800 flex items-center justify-center flex-shrink-0">
+          <span className="text-white font-black text-xl">{loading ? "." : initials}</span>
+        </div>
+        <div>
+          <p className="text-gray-900 dark:text-white font-bold text-lg">{data.firstName} {data.lastName}</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">{data.email}</p>
+          {data.membershipTier && (
+            <span className="inline-block mt-1.5 text-xs font-semibold px-3 py-0.5 rounded-full bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-700">
+              {tierLabel} Member
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Profile Info */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Personal Information</h2>
+          {!editing ? (
+            <button
+              onClick={() => { setEditing(true); setEditData(data); }}
+              className="flex items-center gap-1.5 text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 text-sm font-medium transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5" /> Edit
+            </button>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEditing(false)}
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm transition-colors px-3 py-1.5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600 disabled:opacity-60 text-white text-sm font-medium px-4 py-1.5 rounded-lg transition-colors"
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {saved && (
+          <div className="mb-4 px-4 py-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-sm flex items-center gap-2">
+            <Check className="w-4 h-4" /> Profile saved successfully.
+          </div>
+        )}
+
+        {editing ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
+                <input
+                  type="text"
+                  value={editData.firstName}
+                  onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
+                <input
+                  type="text"
+                  value={editData.lastName}
+                  onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone</label>
+              <input
+                type="tel"
+                value={editData.phone}
+                onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date of Birth</label>
+              <input
+                type="date"
+                value={editData.dob}
+                onChange={(e) => setEditData({ ...editData, dob: e.target.value })}
+                className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {[
+              { icon: <User className="w-4 h-4" />, label: "Full Name", value: `${data.firstName} ${data.lastName}`.trim() || "-" },
+              { icon: <Mail className="w-4 h-4" />, label: "Email", value: data.email || "-" },
+              { icon: <Phone className="w-4 h-4" />, label: "Phone", value: data.phone || "-" },
+              { icon: <Calendar className="w-4 h-4" />, label: "Date of Birth", value: data.dob || "-" },
+              { icon: <Calendar className="w-4 h-4" />, label: "Member Since", value: data.joinDate ? new Date(data.joinDate).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "-" },
+            ].map((row) => (
+              <div key={row.label} className="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center text-violet-600 dark:text-violet-400 flex-shrink-0">
+                  {row.icon}
+                </div>
+                <div>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs">{row.label}</p>
+                  <p className="text-gray-900 dark:text-white text-sm font-medium">{row.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Account Actions */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-3">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Account</h2>
+        <button
+          onClick={handlePasswordReset}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-100 dark:border-gray-600 transition-colors text-left"
+        >
+          <Key className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+          <div>
+            <p className="text-gray-900 dark:text-white text-sm font-medium">Change Password</p>
+            <p className="text-gray-500 dark:text-gray-400 text-xs">
+              {resetSent ? "Reset link sent! Check your email." : "Send a password reset link to your email"}
+            </p>
+          </div>
+        </button>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-red-200 dark:border-red-800 shadow-sm p-6">
+        <h2 className="text-red-600 dark:text-red-400 font-semibold mb-4 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4" /> Danger Zone
+        </h2>
+        <button
+          onClick={() => setShowCancelModal(true)}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-100 dark:border-red-800 transition-colors text-left"
+        >
+          <X className="w-4 h-4 text-red-500 dark:text-red-400" />
+          <div>
+            <p className="text-red-600 dark:text-red-400 text-sm font-medium">Cancel Membership</p>
+            <p className="text-gray-500 dark:text-gray-400 text-xs">This will cancel your membership at the end of the billing period.</p>
+          </div>
+        </button>
+      </div>
+
+      {/* Cancel Modal */}
+      <AnimatePresence>
+        {showCancelModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/60 dark:bg-black/70 flex items-center justify-center z-50 px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowCancelModal(false)}
+          >
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 max-w-sm w-full"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-6 h-6 text-red-500 dark:text-red-400" />
+              </div>
+              <h3 className="text-gray-900 dark:text-white font-bold text-center mb-2">Cancel Membership?</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm text-center mb-6">
+                Your membership will be canceled and you'll lose access to credits and member discounts.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  className="flex-1 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-3 rounded-xl text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Keep Membership
+                </button>
+                <button
+                  onClick={handleCancelMembership}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl text-sm font-medium transition-colors"
+                >
+                  Yes, Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
 export default Profile;
-

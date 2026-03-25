@@ -15,8 +15,32 @@
   --color-text-secondary: #6B7280;
 }
 
+:root {
+  --bg: #F8F7FB;
+  --card: #FFFFFF;
+  --card-subtle: #F9FAFB;
+  --border: #E5E7EB;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --primary: #7C3AED;
+  --primary-hover: #6D28D9;
+  --success: #10B981;
+}
+
+.dark {
+  --bg: #0B0B0F;
+  --card: #111827;
+  --card-subtle: #1F2937;
+  --border: #374151;
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --primary: #8B5CF6;
+  --primary-hover: #7C3AED;
+  --success: #10B981;
+}
+
 @layer base {
   body {
-    @apply antialiased bg-[#F8F7FB] text-gray-900;
+    @apply antialiased bg-[#F8F7FB] dark:bg-[#0B0B0F] text-gray-900 dark:text-gray-100;
   }
 }

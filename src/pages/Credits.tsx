@@ -87,18 +87,18 @@ const Credits: React.FC = () => {
     >
       {/* Title */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Your Credits</h1>
-        <p className="text-gray-500 mt-1">Track your balance, spending power, and recent activity.</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Your Credits</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Track your balance, spending power, and recent activity.</p>
       </div>
 
       {/* Hero Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-violet-50 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <p className="text-gray-500 text-sm uppercase tracking-widest font-semibold mb-1 relative">Available Credits</p>
-        <p className="text-5xl font-black text-gray-900 mb-6 relative">{formatCurrency(balance)}</p>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-violet-50 dark:bg-violet-900/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <p className="text-gray-500 dark:text-gray-400 text-sm uppercase tracking-widest font-semibold mb-1 relative">Available Credits</p>
+        <p className="text-5xl font-black text-gray-900 dark:text-white mb-6 relative">{formatCurrency(balance)}</p>
         <Link
           to="/appointments"
-          className="relative inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+          className="relative inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
         >
           <Calendar className="w-4 h-4" />
           Book Treatment Using Credits
@@ -108,44 +108,44 @@ const Credits: React.FC = () => {
       {/* Membership Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {[
-          { label: "Membership Tier", value: displayTier, icon: <Award className="w-4 h-4 text-violet-600" /> },
-          { label: "Next Credit Drop", value: "—", icon: <Calendar className="w-4 h-4 text-violet-600" /> },
-          { label: "Monthly Contribution", value: "$0", icon: <DollarSign className="w-4 h-4 text-violet-600" /> },
+          { label: "Membership Tier", value: displayTier, icon: <Award className="w-4 h-4 text-violet-600 dark:text-violet-400" /> },
+          { label: "Next Credit Drop", value: "-", icon: <Calendar className="w-4 h-4 text-violet-600 dark:text-violet-400" /> },
+          { label: "Monthly Contribution", value: "$0", icon: <DollarSign className="w-4 h-4 text-violet-600 dark:text-violet-400" /> },
         ].map((item) => (
-          <div key={item.label} className="bg-gray-50 rounded-2xl border border-gray-200 p-4">
+          <div key={item.label} className="bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
             <div className="flex items-center gap-2 mb-1">
               {item.icon}
-              <p className="text-gray-500 text-xs uppercase tracking-wide">{item.label}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">{item.label}</p>
             </div>
-            <p className="text-gray-900 font-bold text-lg">{item.value}</p>
+            <p className="text-gray-900 dark:text-white font-bold text-lg">{item.value}</p>
           </div>
         ))}
       </div>
 
       {/* Spending Power */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">What You Can Do Now</h2>
-            <p className="text-gray-600 text-sm mt-0.5">Your current balance covers these treatments.</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">What You Can Do Now</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mt-0.5">Your current balance covers these treatments.</p>
           </div>
-          <DollarSign className="w-5 h-5 text-violet-600" />
+          <DollarSign className="w-5 h-5 text-violet-600 dark:text-violet-400" />
         </div>
         <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
           {affordability.slice(0, 20).map((a) => (
-            <div key={a.name} className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 border border-gray-100">
+            <div key={a.name} className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600">
               <div className="flex items-center gap-3">
                 {a.covered ? (
-                  <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
                 ) : (
                   <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 )}
-                <span className="text-sm text-gray-900 font-medium">{a.name}</span>
+                <span className="text-sm text-gray-900 dark:text-white font-medium">{a.name}</span>
               </div>
               <div className="text-right">
-                <span className="text-sm text-gray-500">{formatCurrency(a.price)}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">{formatCurrency(a.price)}</span>
                 {a.covered ? (
-                  <span className="ml-2 text-xs font-semibold text-green-600">Covered</span>
+                  <span className="ml-2 text-xs font-semibold text-green-600 dark:text-green-400">Covered</span>
                 ) : (
                   <span className="ml-2 text-xs text-gray-400">{formatCurrency(a.deficit)} needed</span>
                 )}
@@ -156,38 +156,38 @@ const Credits: React.FC = () => {
       </div>
 
       {/* Activity Feed */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Credit Usage</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Credit Usage</h2>
           <Clock className="w-5 h-5 text-gray-400" />
         </div>
         {isLoading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map((i) => <div key={i} className="h-14 rounded-xl bg-gray-100 animate-pulse" />)}
+            {[1, 2, 3].map((i) => <div key={i} className="h-14 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)}
           </div>
         ) : activity.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
               <Inbox className="w-6 h-6 text-gray-400" />
             </div>
-            <h3 className="font-semibold text-gray-900">No activity yet</h3>
-            <p className="text-gray-500 text-sm mt-1">Your credit usage will appear here.</p>
+            <h3 className="font-semibold text-gray-900 dark:text-white">No activity yet</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Your credit usage will appear here.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {activity.map((a) => (
-              <div key={a.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 border border-gray-100">
+              <div key={a.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
-                    <DollarSign className="w-4 h-4 text-violet-600" />
+                  <div className="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-violet-600 dark:text-violet-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{a.treatment}</p>
-                    <p className="text-xs text-gray-500">{a.date}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{a.treatment}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{a.date}</p>
                   </div>
                 </div>
                 {a.amountUsed > 0 && (
-                  <p className="text-sm font-bold text-gray-900">{formatCurrency(a.amountUsed)}</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{formatCurrency(a.amountUsed)}</p>
                 )}
               </div>
             ))}

@@ -57,7 +57,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F0F14] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#F8F7FB] dark:bg-[#0B0B0F] flex items-center justify-center px-4">
       <motion.div
         className="w-full max-w-md"
         initial={{ opacity: 0, y: 24 }}
@@ -66,58 +66,57 @@ const Login: React.FC = () => {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-800 mb-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-violet-800 mb-4">
             <span className="text-white font-black text-xl">R</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">Reflect Medical</h1>
-          <p className="text-[#71717A] text-sm mt-1">Sign in to your account</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reflect Medical</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Sign in to your account</p>
         </div>
 
         {/* Card */}
-        <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-8">
           {error && (
-            <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="you@example.com"
-                  className="w-full bg-[#0F0F14] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white text-sm placeholder:text-[#52525B] focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl pl-10 pr-4 py-3 text-gray-900 dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-violet-500 transition-colors"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-[#A1A1AA]">Password</label>
-                <Link to="/forgot-password" className="text-xs text-purple-400 hover:text-purple-300 transition-colors">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                <Link to="/forgot-password" className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 transition-colors">
                   Forgot password?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="••••••••"
-                  className="w-full bg-[#0F0F14] border border-white/10 rounded-xl pl-10 pr-10 py-3 text-white text-sm placeholder:text-[#52525B] focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl pl-10 pr-10 py-3 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717A] hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -127,7 +126,7 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all text-sm"
+              className="w-full bg-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all text-sm"
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
@@ -135,23 +134,23 @@ const Login: React.FC = () => {
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
+              <div className="w-full border-t border-gray-200 dark:border-gray-600" />
             </div>
-            <div className="relative flex justify-center text-xs text-[#52525B] bg-[#1C1C24] px-3">or</div>
+            <div className="relative flex justify-center text-xs text-gray-400 dark:text-gray-500 bg-white dark:bg-gray-800 px-3">or</div>
           </div>
 
           <button
             onClick={handleGoogle}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 bg-[#0F0F14] hover:bg-white/5 disabled:opacity-60 border border-white/10 text-white font-medium py-3 rounded-xl transition-all text-sm"
+            className="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-60 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-medium py-3 rounded-xl transition-all text-sm"
           >
             <Chrome className="w-4 h-4" />
             {googleLoading ? "Connecting..." : "Continue with Google"}
           </button>
 
-          <p className="text-center text-sm text-[#71717A] mt-6">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
+            <Link to="/signup" className="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium transition-colors">
               Sign up
             </Link>
           </p>

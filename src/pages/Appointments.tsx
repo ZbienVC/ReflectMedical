@@ -13,22 +13,22 @@ const Appointments: React.FC = () => {
       transition={{ duration: 0.3 }}
     >
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Appointments</h1>
-        <p className="text-gray-500 mt-1">Book and manage your visits.</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Appointments</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Book and manage your visits.</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
         <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-          <div className="w-16 h-16 rounded-full bg-violet-50 flex items-center justify-center mb-4">
-            <Calendar className="w-8 h-8 text-violet-600" />
+          <div className="w-16 h-16 rounded-full bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center mb-4">
+            <Calendar className="w-8 h-8 text-violet-600 dark:text-violet-400" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No appointments scheduled</h2>
-          <p className="text-gray-500 text-sm max-w-sm mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No appointments scheduled</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm mb-6">
             Online booking is coming soon. In the meantime, contact us directly to schedule your next visit.
           </p>
           <a
             href={`tel:${PRACTICE_PHONE}`}
-            className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-6 py-3 font-semibold transition-colors"
+            className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600 text-white rounded-xl px-6 py-3 font-semibold transition-colors"
           >
             <Phone className="w-4 h-4" />
             Call Us to Book: {PRACTICE_PHONE}
