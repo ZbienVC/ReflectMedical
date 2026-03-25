@@ -11,18 +11,26 @@ import Admin from "./pages/Admin";
 import Credits from "./pages/Credits";
 import ReferralCenter from "./pages/ReferralCenter";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
+import Onboarding from "./pages/Onboarding";
+import Profile from "./pages/Profile";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AppLayout from "./components/layout/AppLayout";
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly }) => {
+const PrivateRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly }) => {
   const { user, profile, loading } = useAuth();
 
   if (loading) return null;
-  if (!user) return <Navigate to="/" />;
-  if (adminOnly && profile?.role !== "admin") return <Navigate to="/" />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (adminOnly && profile?.role !== "admin") return <Navigate to="/dashboard" replace />;
 
   return <>{children}</>;
 };
+
+// Legacy alias kept for any existing internal refs
+const ProtectedRoute = PrivateRoute;
 
 export default function App() {
   return (
@@ -31,18 +39,31 @@ export default function App() {
         <Router>
           <AppLayout>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/membership" element={<EnhancedMembership />} />
+              {/* Public routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+
+              {/* Root redirect */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+              {/* Protected routes */}
+              <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+              <Route path="/membership" element={<PrivateRoute><EnhancedMembership /></PrivateRoute>} />
               <Route path="/memberships" element={<Navigate to="/membership" replace />} />
-              <Route path="/treatments" element={<Treatments />} />
-              <Route path="/locations" element={<Locations />} />
-              <Route path="/catalog" element={<Catalog />} />
-              <Route path="/credits" element={<Credits />} />
+              <Route path="/treatments" element={<PrivateRoute><Treatments /></PrivateRoute>} />
+              <Route path="/locations" element={<PrivateRoute><Locations /></PrivateRoute>} />
+              <Route path="/catalog" element={<PrivateRoute><Catalog /></PrivateRoute>} />
+              <Route path="/credits" element={<PrivateRoute><Credits /></PrivateRoute>} />
               <Route path="/wallet" element={<Navigate to="/credits" replace />} />
               <Route path="/banking" element={<Navigate to="/credits" replace />} />
-              <Route path="/referrals" element={<ReferralCenter />} />
-              <Route path="/checkout/:serviceId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
+              <Route path="/referrals" element={<PrivateRoute><ReferralCenter /></PrivateRoute>} />
+              <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
+              <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
+              <Route path="/checkout/:serviceId" element={<PrivateRoute><Checkout /></PrivateRoute>} />
+              <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+              <Route path="/admin" element={<PrivateRoute adminOnly><Admin /></PrivateRoute>} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>

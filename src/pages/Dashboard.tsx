@@ -46,20 +46,7 @@ interface SuggestedTreatment {
   category: string;
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const TRANSACTIONS: Transaction[] = [
-  { id: "1", treatment: "Botox – Forehead & Crow's Feet", date: "Mar 15, 2026", amount: 165, saved: 60, status: "completed" },
-  { id: "2", treatment: "HydraFacial Deluxe", date: "Mar 8, 2026", amount: 180, saved: 45, status: "completed" },
-  { id: "3", treatment: "VI Peel (Medium)", date: "Feb 28, 2026", amount: 180, saved: 45, status: "completed" },
-  { id: "4", treatment: "Juvederm Voluma – Cheeks", date: "Feb 15, 2026", amount: 720, saved: 180, status: "completed" },
-  { id: "5", treatment: "Consultation – Spring Refresh", date: "Apr 1, 2026", amount: 0, saved: 0, status: "upcoming" },
-];
-
-const SUGGESTED: SuggestedTreatment[] = [
-  { id: "s1", name: "Dysport", reason: "Due for a touch-up (3 months since Botox)", memberPrice: 150, regularPrice: 200, category: "Neurotoxins" },
-  { id: "s2", name: "IPL Photofacial", reason: "Popular this season — great for sun damage", memberPrice: 280, regularPrice: 350, category: "Laser" },
-  { id: "s3", name: "Restylane Kysse", reason: "Complete your look with natural lip volume", memberPrice: 560, regularPrice: 700, category: "Fillers" },
-];
+// No hardcoded mock data — all data comes from Firebase
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 const StatCard: React.FC<StatCardProps> = ({ label, value, sub, icon, trend, color }) => (
@@ -140,13 +127,13 @@ const Dashboard: React.FC = () => {
       .finally(() => setIsLoading(false));
   }, [user]);
 
-  const transactions = firebaseTransactions ?? TRANSACTIONS;
+  const transactions = firebaseTransactions ?? [];
   const completedTransactions = transactions.filter((t) => t.status === "completed");
   const upcomingTransactions = transactions.filter((t) => t.status === "upcoming");
   const totalSaved = completedTransactions.reduce((sum, t) => sum + t.saved, 0);
 
-  const displayName = profile?.name ?? user?.displayName ?? "Sarah";
-  const beautyBalance = liveBalance !== null ? liveBalance : 1420;
+  const displayName = profile?.name ?? user?.displayName ?? "there";
+  const beautyBalance = liveBalance !== null ? liveBalance : 0;
   const membershipLabel = profile?.membershipTierId
     ? profile.membershipTierId.charAt(0).toUpperCase() + profile.membershipTierId.slice(1) + " Member"
     : "Evolve Member";
@@ -187,7 +174,6 @@ const Dashboard: React.FC = () => {
               sub="Ready to spend"
               icon={<CreditCard className="w-5 h-5 text-white" />}
               color="bg-gradient-to-br from-purple-600 to-purple-700"
-              trend="+$150 this month"
             />
             <StatCard
               label="Total Value Received"
@@ -195,7 +181,6 @@ const Dashboard: React.FC = () => {
               sub="Since joining Reflect"
               icon={<TrendingUp className="w-5 h-5 text-white" />}
               color="bg-gradient-to-br from-green-600 to-green-700"
-              trend="+$285 this month"
             />
             <StatCard
               label="Membership Status"
@@ -205,9 +190,9 @@ const Dashboard: React.FC = () => {
               color="bg-gradient-to-br from-fuchsia-600 to-fuchsia-700"
             />
             <StatCard
-              label="On Pace"
-              value={`$${(180 * 12).toLocaleString()}`}
-              sub="In value this year"
+              label="Treatments This Year"
+              value={completedTransactions.length.toString()}
+              sub="Completed visits"
               icon={<Calendar className="w-5 h-5 text-white" />}
               color="bg-gradient-to-br from-blue-600 to-blue-700"
             />
@@ -294,32 +279,13 @@ const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className="p-4 space-y-3">
-                {SUGGESTED.map((s) => (
-                  <motion.div
-                    key={s.id}
-                    className="bg-[#0F0F14] rounded-xl p-4 border border-white/5 hover:border-purple-500/30 transition-all cursor-pointer"
-                    whileHover={{ scale: 1.01 }}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs text-purple-400 font-medium">{s.category}</span>
-                        </div>
-                        <p className="text-white text-sm font-semibold">{s.name}</p>
-                        <p className="text-[#71717A] text-xs mt-1 leading-relaxed">{s.reason}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-3">
-                      <div>
-                        <span className="text-white font-bold text-sm">${s.memberPrice}</span>
-                        <span className="text-[#71717A] line-through text-xs ml-1">${s.regularPrice}</span>
-                      </div>
-                      <button className="text-xs bg-purple-600/20 text-purple-300 px-3 py-1 rounded-lg border border-purple-500/20 hover:bg-purple-600/30 transition-colors">
-                        Book
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
+                <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                    <Star className="w-6 h-6 text-[#A1A1AA]" />
+                  </div>
+                  <p className="text-white font-semibold">No suggestions yet</p>
+                  <p className="text-[#71717A] text-sm mt-1">Personalized recommendations will appear here.</p>
+                </div>
               </div>
             )}
           </div>

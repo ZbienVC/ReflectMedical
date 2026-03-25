@@ -1,222 +1,235 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../AuthContext";
+import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { CreditCard, Lock, CheckCircle, Shield, Sparkles } from "lucide-react";
+import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
-import { Service, MembershipTier } from "../types";
-import { formatCurrency } from "../lib/utils";
-import { calculateDiscountedPrice, processTransaction } from "../services/membershipService";
-import { ShoppingCart, Sparkles, CreditCard, Wallet, ArrowLeft, CheckCircle2 } from "lucide-react";
-import AppLayout from "../components/layout/AppLayout";
+import { useAuth } from "../AuthContext";
+
+const TIERS = {
+  silver: { name: "Silver", price: 84, credits: 100, savings: 16 },
+  gold: { name: "Gold", price: 124, credits: 150, savings: 26 },
+  platinum: { name: "Platinum", price: 200, credits: 250, savings: 50 },
+};
+
+type TierKey = keyof typeof TIERS;
 
 const Checkout: React.FC = () => {
-  const { serviceId } = useParams();
-  const { profile, user } = useAuth();
-  const [service, setService] = useState<Service | null>(null);
-  const [tier, setTier] = useState<MembershipTier | null>(null);
-  const [units, setUnits] = useState(1);
-  const [useBucks, setUseBucks] = useState(true);
-  const [processing, setProcessing] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  useEffect(() => {
-    if (serviceId) {
-      getDoc(doc(db, "services", serviceId)).then((snap) => {
-        if (snap.exists()) setService({ id: snap.id, ...snap.data() } as Service);
-      });
+  const tierParam = (new URLSearchParams(location.search).get("tier") as TierKey) || "gold";
+  const tier = TIERS[tierParam] ?? TIERS.gold;
+
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [cvc, setCvc] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const formatCard = (val: string) =>
+    val.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+
+  const formatExpiry = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 4);
+    if (digits.length > 2) return digits.slice(0, 2) + "/" + digits.slice(2);
+    return digits;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    if (cardNumber.replace(/\s/g, "").length < 16) {
+      setError("Please enter a valid card number.");
+      return;
     }
-    if (profile?.membershipTierId) {
-      getDoc(doc(db, "membershipTiers", profile.membershipTierId)).then((snap) => {
-        if (snap.exists()) setTier(snap.data() as MembershipTier);
-      });
+    if (expiry.length < 5) {
+      setError("Please enter a valid expiry date.");
+      return;
     }
-  }, [serviceId, profile]);
+    if (cvc.length < 3) {
+      setError("Please enter a valid CVC.");
+      return;
+    }
 
-  if (!service) return (
-    <AppLayout>
-      <main className="pt-6">
-        <div className="py-20 text-center text-slate-400">Loading checkout...</div>
-      </main>
-    </AppLayout>
-  );
+    setError("");
+    setLoading(true);
 
-  const isInjectable = service.category === "injectable";
-  const { discountedPrice, savings } = calculateDiscountedPrice(service, tier, units);
-  const maxBucksToUse = Math.min(profile?.beautyBucksBalance || 0, discountedPrice);
-  const bucksToApply = useBucks ? maxBucksToUse : 0;
-  const finalTotal = discountedPrice - bucksToApply;
+    // Simulate payment processing
+    await new Promise((r) => setTimeout(r, 1500));
 
-  const handleCheckout = async () => {
-    if (!user || !service) return;
-    setProcessing(true);
     try {
-      await processTransaction(user.uid, service, tier, bucksToApply, units);
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          membershipTierId: tierParam,
+          membershipStartDate: new Date().toISOString(),
+          beautyBucksBalance: tier.credits,
+        },
+        { merge: true }
+      );
       setSuccess(true);
-    } catch (error) {
-      console.error("Checkout failed:", error);
-      alert("Transaction failed. Please try again.");
+    } catch {
+      setError("Payment simulation succeeded but profile update failed.");
     } finally {
-      setProcessing(false);
+      setLoading(false);
     }
   };
 
   if (success) {
     return (
-      <AppLayout>
-        <main className="pt-6">
-          <div className="max-w-md mx-auto py-20 text-center">
-        <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-8">
-          <CheckCircle2 className="text-emerald-600 w-10 h-10" />
-        </div>
-        <h1 className="text-3xl font-serif font-bold text-slate-900 mb-4">Treatment Booked!</h1>
-        <p className="text-slate-600 mb-8">
-          Your appointment for {service.name} has been confirmed. Your savings have been applied to your dashboard.
-        </p>
-        <button
-          onClick={() => navigate("/")}
-          className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all"
+      <div className="min-h-screen bg-[#0F0F14] flex items-center justify-center px-4">
+        <motion.div
+          className="w-full max-w-md text-center"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
         >
-          Return to Dashboard
-        </button>
-          </div>
-        </main>
-      </AppLayout>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+            className="w-16 h-16 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center mx-auto mb-4"
+          >
+            <CheckCircle className="w-8 h-8 text-green-400" />
+          </motion.div>
+          <h2 className="text-2xl font-bold text-white mb-2">Membership activated!</h2>
+          <p className="text-[#71717A] text-sm mb-2">
+            Welcome to Reflect Medical {tier.name}.
+          </p>
+          <p className="text-[#71717A] text-sm mb-8">
+            Your <span className="text-green-400 font-semibold">${tier.credits} in credits</span> have been added to your account.
+          </p>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold py-3 rounded-xl transition-all text-sm"
+          >
+            Go to Dashboard
+          </button>
+        </motion.div>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <main className="pt-6">
-        <div className="max-w-4xl mx-auto space-y-8">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Back to Catalog
-      </button>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <section className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm">
-            <h2 className="text-2xl font-serif font-bold text-slate-900 mb-6">Treatment Details</h2>
-            <div className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">{service.name}</h3>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{service.category}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-lg font-serif font-bold text-slate-900">{formatCurrency(service.basePrice)}</p>
-                <p className="text-xs text-slate-400 font-medium">Base Price</p>
-              </div>
-            </div>
-
-            {isInjectable && (
-              <div className="mt-8 space-y-4">
-                <label className="text-sm font-bold text-slate-900">Number of Units</label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="number"
-                    min="1"
-                    value={units}
-                    onChange={(e) => setUnits(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-24 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-lg font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                  />
-                  <span className="text-slate-400 font-medium">Units of {service.name}</span>
-                </div>
-              </div>
-            )}
-          </section>
-
-          <section className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm">
-            <h2 className="text-2xl font-serif font-bold text-slate-900 mb-6">Payment Method</h2>
-            <div className="space-y-4">
-              <div 
-                onClick={() => setUseBucks(!useBucks)}
-                className={`flex items-center justify-between p-6 rounded-3xl border-2 cursor-pointer transition-all ${
-                  useBucks ? "border-emerald-500 bg-emerald-50/30" : "border-slate-100 bg-white"
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${useBucks ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-400"}`}>
-                    <Wallet className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">Beauty Bucks Wallet</p>
-                    <p className="text-xs text-slate-400 font-medium">Available: {formatCurrency(profile?.beautyBucksBalance || 0)}</p>
-                  </div>
-                </div>
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${useBucks ? "border-emerald-500 bg-emerald-500" : "border-slate-200"}`}>
-                  {useBucks && <CheckCircle2 className="w-4 h-4 text-white" />}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-6 rounded-3xl border-2 border-slate-100 bg-white opacity-50 cursor-not-allowed">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center">
-                    <CreditCard className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">Credit Card</p>
-                    <p className="text-xs text-slate-400 font-medium">Ending in 4242</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+    <div className="min-h-screen bg-[#0F0F14] flex items-center justify-center px-4 py-12">
+      <motion.div
+        className="w-full max-w-lg"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-800 mb-4">
+            <span className="text-white font-black text-xl">R</span>
+          </div>
+          <h1 className="text-2xl font-bold text-white">Start your membership</h1>
+          <p className="text-[#71717A] text-sm mt-1">Reflect Medical {tier.name} Plan</p>
         </div>
 
-        <div className="space-y-6">
-          <section className="bg-slate-900 text-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200 sticky top-24">
-            <h2 className="text-xl font-serif font-bold mb-6">Order Summary</h2>
-            <div className="space-y-4 text-sm font-medium">
-              <div className="flex justify-between text-slate-400">
-                <span>Subtotal ({units} units)</span>
-                <span>{formatCurrency(service.basePrice * units)}</span>
+        {/* Plan Summary */}
+        <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-6 mb-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-purple-600/20 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-purple-400" />
+            </div>
+            <div>
+              <p className="text-white font-semibold">{tier.name} Membership</p>
+              <p className="text-[#71717A] text-xs">Monthly subscription</p>
+            </div>
+            <div className="ml-auto text-right">
+              <p className="text-white font-bold text-lg">${tier.price}/mo</p>
+            </div>
+          </div>
+          <div className="space-y-2 text-sm border-t border-white/5 pt-4">
+            <div className="flex justify-between">
+              <span className="text-[#71717A]">Monthly fee</span>
+              <span className="text-white">${tier.price}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#71717A]">Credits value</span>
+              <span className="text-green-400">+${tier.credits}</span>
+            </div>
+            <div className="flex justify-between font-semibold border-t border-white/5 pt-2 mt-2">
+              <span className="text-[#A1A1AA]">Net value</span>
+              <span className="text-green-400">+${tier.savings}/mo in savings</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Form */}
+        <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-6">
+          <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-purple-400" />
+            Payment Information
+          </h2>
+
+          {error && (
+            <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Card Number</label>
+              <div className="relative">
+                <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+                <input
+                  type="text"
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(formatCard(e.target.value))}
+                  placeholder="1234 5678 9012 3456"
+                  className="w-full bg-[#0F0F14] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white text-sm placeholder:text-[#52525B] focus:outline-none focus:border-purple-500 transition-colors font-mono"
+                />
               </div>
-              <div className="flex justify-between text-emerald-400 font-bold">
-                <span>Member Discount</span>
-                <span>-{formatCurrency(savings)}</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Expiry</label>
+                <input
+                  type="text"
+                  value={expiry}
+                  onChange={(e) => setExpiry(formatExpiry(e.target.value))}
+                  placeholder="MM/YY"
+                  className="w-full bg-[#0F0F14] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-[#52525B] focus:outline-none focus:border-purple-500 transition-colors font-mono"
+                />
               </div>
-              {useBucks && bucksToApply > 0 && (
-                <div className="flex justify-between text-emerald-400 font-bold">
-                  <span>Beauty Bucks Applied</span>
-                  <span>-{formatCurrency(bucksToApply)}</span>
-                </div>
-              )}
-              <div className="pt-4 border-t border-slate-800 flex justify-between items-end">
-                <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-widest font-black mb-1">Total Due</p>
-                  <p className="text-3xl font-serif font-bold">{formatCurrency(finalTotal)}</p>
+              <div>
+                <label className="block text-sm font-medium text-[#A1A1AA] mb-2">CVC</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+                  <input
+                    type="text"
+                    value={cvc}
+                    onChange={(e) => setCvc(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                    placeholder="123"
+                    className="w-full bg-[#0F0F14] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white text-sm placeholder:text-[#52525B] focus:outline-none focus:border-purple-500 transition-colors font-mono"
+                  />
                 </div>
               </div>
             </div>
 
             <button
-              onClick={handleCheckout}
-              disabled={processing}
-              className="w-full mt-8 py-4 bg-emerald-500 text-white font-bold rounded-2xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-950/20 disabled:opacity-50"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-all text-sm mt-2"
             >
-              {processing ? "Processing..." : "Confirm Booking"}
+              {loading ? "Processing..." : `Start ${tier.name} Membership — $${tier.price}/mo`}
             </button>
-            
-            <p className="text-[10px] text-slate-500 text-center mt-4 font-bold uppercase tracking-widest">
-              Secure Medical Checkout
-            </p>
-          </section>
+          </form>
 
-          <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
-            <div className="flex items-center gap-3 mb-2">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
-              <p className="text-sm font-bold text-emerald-900">Membership Value</p>
-            </div>
-            <p className="text-xs text-emerald-700 font-medium leading-relaxed">
-              By booking as a {tier?.name || "Guest"}, you are saving {formatCurrency(savings)} on this treatment.
-            </p>
+          <div className="flex items-center justify-center gap-2 mt-4 text-[#71717A] text-xs">
+            <Shield className="w-3.5 h-3.5" />
+            Powered by Stripe — your payment info is secure
           </div>
         </div>
-      </div>
-      </div>
-    </main>
-  </AppLayout>
-);
+      </motion.div>
+    </div>
+  );
 };
 
 export default Checkout;

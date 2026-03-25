@@ -18,14 +18,21 @@ interface AppLayoutProps {
   children: React.ReactNode;
 }
 
+const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password"];
+
 export default function AppLayout({ children }: AppLayoutProps) {
   const { user, profile } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
+
   const navItems = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Membership", href: "/membership", icon: Sparkles },
     { name: "Beauty Bank", href: "/wallet", icon: Wallet },
     { name: "Treatments", href: "/treatments", icon: Stethoscope },
@@ -38,7 +45,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   const handleSignOut = async () => {
     await logOut();
-    navigate("/");
+    navigate("/login");
   };
 
   return (

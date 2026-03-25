@@ -40,21 +40,16 @@ interface CreditActivity {
 // ── Mock fallback data ────────────────────────────────────────────────────────
 
 const MOCK_CREDITS: UserCredits = {
-  balance: 1420,
-  totalPaid: 2160,
-  totalValueReceived: 3580,
-  totalSaved: 1420,
-  monthlyContribution: 180,
-  nextCreditDate: "April 1, 2026",
-  membershipTier: "Gold",
+  balance: 0,
+  totalPaid: 0,
+  totalValueReceived: 0,
+  totalSaved: 0,
+  monthlyContribution: 0,
+  nextCreditDate: "—",
+  membershipTier: "Silver",
 };
 
-const MOCK_ACTIVITY: CreditActivity[] = [
-  { id: "1", treatment: "Botox – Forehead & Crow's Feet", date: "Mar 15, 2026", amountUsed: 165, savings: 60 },
-  { id: "2", treatment: "HydraFacial Deluxe", date: "Mar 8, 2026", amountUsed: 180, savings: 45 },
-  { id: "3", treatment: "VI Peel (Medium)", date: "Feb 28, 2026", amountUsed: 180, savings: 45 },
-  { id: "4", treatment: "Juvederm Voluma – Cheeks", date: "Feb 15, 2026", amountUsed: 720, savings: 180 },
-];
+const MOCK_ACTIVITY: CreditActivity[] = [];
 
 // ── Spending power helper ─────────────────────────────────────────────────────
 
