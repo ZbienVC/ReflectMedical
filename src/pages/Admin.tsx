@@ -6,7 +6,6 @@ import { Transaction, UserProfile, MembershipTier, Service } from "../types";
 import { formatCurrency } from "../lib/utils";
 import { Users, TrendingUp, History, Database, ShieldCheck, Plus, Trash2, Sparkles } from "lucide-react";
 import { INITIAL_MEMBERSHIP_TIERS, INITIAL_SERVICES } from "../constants";
-import AppLayout from "../components/layout/AppLayout";
 
 const Admin: React.FC = () => {
   const { profile } = useAuth();
@@ -75,29 +74,24 @@ const Admin: React.FC = () => {
 
   if (profile?.role !== "admin") {
     return (
-      <AppLayout>
-        <main className="pt-6">
+            <main className="pt-6">
           <div className="py-20 text-center">
             <ShieldCheck className="w-16 h-16 text-slate-300 mx-auto mb-6" />
             <h1 className="text-2xl font-serif font-bold text-slate-900">Access Denied</h1>
             <p className="text-slate-500">You do not have administrative privileges.</p>
           </div>
         </main>
-      </AppLayout>
-    );
+        );
   }
 
   if (loading) return (
-    <AppLayout>
-      <main className="pt-6">
+        <main className="pt-6">
         <div className="py-20 text-center text-slate-400">Loading admin data...</div>
       </main>
-    </AppLayout>
-  );
+    );
 
   return (
-    <AppLayout>
-      <main className="pt-6">
+        <main className="pt-6">
         <div className="space-y-12">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
@@ -188,8 +182,7 @@ const Admin: React.FC = () => {
       </div>
         </div>
       </main>
-    </AppLayout>
-  );
+    );
 };
 
 const StatCard = ({ label, value, icon: Icon, color }: { label: string; value: string; icon: any; color: string }) => (
@@ -208,3 +201,4 @@ const StatCard = ({ label, value, icon: Icon, color }: { label: string; value: s
 );
 
 export default Admin;
+

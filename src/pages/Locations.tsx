@@ -15,7 +15,6 @@ import {
   Mail,
   Shield
 } from "lucide-react";
-import AppLayout from "../components/layout/AppLayout";
 import { Button, Card, Badge } from "../components/ui";
 
 const Locations: React.FC = () => {
@@ -32,8 +31,7 @@ const Locations: React.FC = () => {
   const isOpenToday = todayKey !== 'sunday';
 
   return (
-    <AppLayout>
-
+  
       <main className="pt-6">
         {/* Hero Section */}
         <section className="py-12 md:py-16 relative overflow-hidden">
@@ -332,8 +330,7 @@ const Locations: React.FC = () => {
         </section>
 
       </main>
-    </AppLayout>
-  );
+    );
 };
 
 export default Locations;

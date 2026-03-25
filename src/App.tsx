@@ -10,6 +10,8 @@ import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
 import Credits from "./pages/Credits";
 import ReferralCenter from "./pages/ReferralCenter";
+import Appointments from "./pages/Appointments";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -28,9 +30,6 @@ const PrivateRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }>
 
   return <>{children}</>;
 };
-
-// Legacy alias kept for any existing internal refs
-const ProtectedRoute = PrivateRoute;
 
 export default function App() {
   return (
@@ -58,6 +57,8 @@ export default function App() {
               <Route path="/wallet" element={<Navigate to="/credits" replace />} />
               <Route path="/banking" element={<Navigate to="/credits" replace />} />
               <Route path="/referrals" element={<PrivateRoute><ReferralCenter /></PrivateRoute>} />
+              <Route path="/appointments" element={<PrivateRoute><Appointments /></PrivateRoute>} />
+              <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
               <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
               <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
               <Route path="/checkout/:serviceId" element={<PrivateRoute><Checkout /></PrivateRoute>} />

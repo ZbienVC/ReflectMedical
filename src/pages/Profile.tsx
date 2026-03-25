@@ -4,7 +4,6 @@ import { User, Mail, Phone, Calendar, Edit3, Key, AlertTriangle, Check, X } from
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../AuthContext";
-import DashboardLayout from "../components/layout/DashboardLayout";
 import { useNavigate } from "react-router-dom";
 
 interface ProfileData {
@@ -114,7 +113,6 @@ const Profile: React.FC = () => {
     : "No Membership";
 
   return (
-    <DashboardLayout>
       <div className="space-y-6 pb-12 max-w-2xl mx-auto">
         <div>
           <h1 className="text-2xl font-bold text-white">Profile</h1>
@@ -314,8 +312,8 @@ const Profile: React.FC = () => {
           )}
         </AnimatePresence>
       </div>
-    </DashboardLayout>
   );
 };
 
 export default Profile;
+

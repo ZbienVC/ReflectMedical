@@ -8,7 +8,6 @@ import { formatCurrency } from "../lib/utils";
 import { calculateDiscountedPrice } from "../services/membershipService";
 import { ShoppingCart, Sparkles, Tag, ArrowRight, PackageSearch } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import AppLayout from "../components/layout/AppLayout";
 import { Skeleton, SkeletonCard } from "../components/ui/Skeleton";
 
 const container = {
@@ -45,8 +44,7 @@ const Catalog: React.FC = () => {
   const categories = ["injectable", "filler", "device", "wellness", "retail"];
 
   if (loading) return (
-    <AppLayout>
-      <div className="pt-6 space-y-10">
+        <div className="pt-6 space-y-10">
         {/* Header skeleton */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-3">
@@ -72,14 +70,12 @@ const Catalog: React.FC = () => {
           </div>
         ))}
       </div>
-    </AppLayout>
-  );
+    );
 
   const hasServices = services.length > 0;
 
   return (
-    <AppLayout>
-      <motion.div
+        <motion.div
         className="pt-6 space-y-10 pb-12"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -192,8 +188,8 @@ const Catalog: React.FC = () => {
           );
         })}
       </motion.div>
-    </AppLayout>
-  );
+    );
 };
 
 export default Catalog;
+

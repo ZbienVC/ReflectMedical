@@ -5,18 +5,18 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
-  --color-primary: #6D28D9;
-  --color-secondary: #8B5CF6;
-  --color-accent: #A78BFA;
-  --color-background: #0F0F14;
-  --color-card: #1C1C24;
-  --color-border: #2A2A35;
-  --color-text-primary: #FFFFFF;
-  --color-text-secondary: #A1A1AA;
+  --color-primary: #7C3AED;
+  --color-secondary: #6D28D9;
+  --color-accent: #F3F0FF;
+  --color-background: #F8F7FB;
+  --color-card: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
 }
 
 @layer base {
   body {
-    @apply antialiased bg-background text-text-primary;
+    @apply antialiased bg-[#F8F7FB] text-gray-900;
   }
 }

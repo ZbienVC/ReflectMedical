@@ -23,7 +23,6 @@ import {
   Gift,
   Phone
 } from "lucide-react";
-import AppLayout from "../components/layout/AppLayout";
 import { Button, Card, Badge, Section } from "../components/ui";
 
 const EnhancedMembership: React.FC = () => {
@@ -72,7 +71,7 @@ const EnhancedMembership: React.FC = () => {
   }
 
   return (
-    <AppLayout>
+    <div className="relative">
       {/* Background System */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-[#F7F6FB] via-white to-[#B57EDC]/5" />
@@ -821,7 +820,7 @@ const EnhancedMembership: React.FC = () => {
           ))}
         </section>
       </main>
-    </AppLayout>
+    </div>
   );
 };
 

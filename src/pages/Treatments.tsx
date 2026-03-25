@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Star, ChevronDown, ChevronUp, Zap, Droplets, Sparkles, Syringe, Layers, FlaskConical } from "lucide-react";
-import AppLayout from "../components/layout/AppLayout";
 import { treatments, MEMBERSHIP_DISCOUNTS, calculateSavings, Treatment, TreatmentVariant } from "../data/treatments";
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -210,7 +209,6 @@ const Treatments: React.FC = () => {
     : treatments.filter((t) => t.category === selectedCategory);
 
   return (
-    <AppLayout>
       <div className="max-w-7xl mx-auto px-6 py-10 space-y-10">
         {/* Header */}
         <motion.div
@@ -295,8 +293,8 @@ const Treatments: React.FC = () => {
             ))}
         </div>
       </div>
-    </AppLayout>
   );
 };
 
 export default Treatments;
+

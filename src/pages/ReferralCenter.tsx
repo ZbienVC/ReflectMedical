@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import DashboardLayout from "../components/layout/DashboardLayout";
 import { 
   Users,
   Gift,
@@ -128,7 +127,6 @@ const ReferralCenter: React.FC = () => {
   ];
 
   return (
-    <DashboardLayout>
       <div className="space-y-8 pb-12">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -755,8 +753,8 @@ const ReferralCenter: React.FC = () => {
           )}
         </AnimatePresence>
       </div>
-    </DashboardLayout>
   );
 };
 
 export default ReferralCenter;
+
