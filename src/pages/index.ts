@@ -1,9 +1,10 @@
 export { default as EnhancedMembership } from './EnhancedMembership';
 export { default as Dashboard } from './Dashboard';
-export { default as EnhancedDashboard } from './EnhancedDashboard';
-export { default as Wallet } from './Wallet';
-export { default as EnhancedWallet } from './EnhancedWallet';
-export { default as TreatmentCatalog } from './TreatmentCatalog';
 export { default as BankingHub } from './BankingHub';
 export { default as ReferralCenter } from './ReferralCenter';
 export { default as Locations } from './Locations';
+export { default as Treatments } from './Treatments';
+export { default as Catalog } from './Catalog';
+export { default as Checkout } from './Checkout';
+export { default as Admin } from './Admin';
+export { default as NotFound } from './NotFound';

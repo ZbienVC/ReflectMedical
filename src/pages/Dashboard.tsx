@@ -131,7 +131,7 @@ const Dashboard: React.FC = () => {
             date: new Date(b.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
             amount: 0,
             saved: 0,
-            status: b.status === "canceled" ? "cancelled" : b.status,
+            status: b.status === "canceled" ? "cancelled" : b.status === "scheduled" ? "upcoming" : b.status as "completed" | "upcoming" | "cancelled",
           }));
           setFirebaseTransactions(mapped);
         }

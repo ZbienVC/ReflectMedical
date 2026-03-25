@@ -268,7 +268,7 @@ const Locations: React.FC = () => {
                       </div>
                       <h3 className="text-xl font-semibold text-white mb-2">{physician.name}</h3>
                       <p className="text-[#B57EDC] font-medium mb-3">{physician.title}</p>
-                      <p className="text-[#A1A1AA] text-sm leading-relaxed">{physician.specialization}</p>
+                      <p className="text-[#A1A1AA] text-sm leading-relaxed">{physician.specialties?.join(", ")}</p>
                       
                       <div className="flex items-center justify-center gap-1 mt-4">
                         {[...Array(5)].map((_, i) => (

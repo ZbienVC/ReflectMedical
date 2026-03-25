@@ -72,7 +72,7 @@ const EnhancedMembership: React.FC = () => {
   }
 
   return (
-    <AppLayout isAuthenticated={!!user}>
+    <AppLayout>
       {/* Background System */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-[#F7F6FB] via-white to-[#B57EDC]/5" />

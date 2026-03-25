@@ -8,7 +8,11 @@ import Locations from "./pages/Locations";
 import Catalog from "./pages/Catalog";
 import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
+import BankingHub from "./pages/BankingHub";
+import ReferralCenter from "./pages/ReferralCenter";
+import NotFound from "./pages/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
+import AppLayout from "./components/layout/AppLayout";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly }) => {
   const { user, profile, loading } = useAuth();
@@ -33,8 +37,11 @@ export default function App() {
               <Route path="/treatments" element={<Treatments />} />
               <Route path="/locations" element={<Locations />} />
               <Route path="/catalog" element={<Catalog />} />
+              <Route path="/wallet" element={<BankingHub />} />
+              <Route path="/referrals" element={<ReferralCenter />} />
               <Route path="/checkout/:serviceId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>
         </Router>
