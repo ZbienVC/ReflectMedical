@@ -161,7 +161,7 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
         >
           <div>
-            <h1 className="text-2xl font-bold text-white">Good morning, {displayName} 👋</h1>
+            <h1 className="text-2xl font-bold text-white">Good morning, {displayName}</h1>
             <p className="text-[#71717A] text-sm mt-1">Here's your Reflect Medical dashboard</p>
           </div>
           <div className="flex items-center gap-3">
@@ -182,32 +182,32 @@ const Dashboard: React.FC = () => {
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
-              label="Beauty Balance"
+              label="Credits Available"
               value={`$${beautyBalance.toLocaleString()}`}
-              sub="Credits available to spend"
+              sub="Ready to spend"
               icon={<CreditCard className="w-5 h-5 text-white" />}
               color="bg-gradient-to-br from-purple-600 to-purple-700"
               trend="+$150 this month"
             />
             <StatCard
-              label="Total Saved"
-              value={`$${totalSaved.toLocaleString()}`}
+              label="Total Value Received"
+              value={`$${(totalSaved + beautyBalance).toLocaleString()}`}
               sub="Since joining Reflect"
               icon={<TrendingUp className="w-5 h-5 text-white" />}
               color="bg-gradient-to-br from-green-600 to-green-700"
               trend="+$285 this month"
             />
             <StatCard
-              label="Treatments Done"
-              value={`${completedTransactions.length}`}
-              sub="This membership cycle"
+              label="Membership Status"
+              value={membershipLabel}
+              sub="Active"
               icon={<Sparkles className="w-5 h-5 text-white" />}
               color="bg-gradient-to-br from-fuchsia-600 to-fuchsia-700"
             />
             <StatCard
-              label="Next Appointment"
-              value="Apr 1"
-              sub="Consultation – Spring Refresh"
+              label="On Pace"
+              value={`$${(180 * 12).toLocaleString()}`}
+              sub="In value this year"
               icon={<Calendar className="w-5 h-5 text-white" />}
               color="bg-gradient-to-br from-blue-600 to-blue-700"
             />
@@ -352,11 +352,11 @@ const Dashboard: React.FC = () => {
                 href: "/referrals",
               },
               {
-                label: "Beauty Bank",
-                desc: "View your credits & history",
+                label: "Your Credits",
+                desc: "View your balance & history",
                 icon: <CreditCard className="w-5 h-5" />,
                 color: "from-blue-600 to-blue-700",
-                href: "/wallet",
+                href: "/credits",
               },
             ].map((action) => (
               <motion.a

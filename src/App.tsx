@@ -8,7 +8,7 @@ import Locations from "./pages/Locations";
 import Catalog from "./pages/Catalog";
 import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
-import BankingHub from "./pages/BankingHub";
+import Credits from "./pages/Credits";
 import ReferralCenter from "./pages/ReferralCenter";
 import NotFound from "./pages/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -37,7 +37,9 @@ export default function App() {
               <Route path="/treatments" element={<Treatments />} />
               <Route path="/locations" element={<Locations />} />
               <Route path="/catalog" element={<Catalog />} />
-              <Route path="/wallet" element={<BankingHub />} />
+              <Route path="/credits" element={<Credits />} />
+              <Route path="/wallet" element={<Navigate to="/credits" replace />} />
+              <Route path="/banking" element={<Navigate to="/credits" replace />} />
               <Route path="/referrals" element={<ReferralCenter />} />
               <Route path="/checkout/:serviceId" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
