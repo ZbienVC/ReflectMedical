@@ -1,0 +1,61 @@
+export type MembershipTier = {
+  id: string;
+  name: string;
+  monthlyPrice: number;
+  monthlyCredits: number;
+  toxinDiscountBotox: number;
+  toxinDiscountDysport: number;
+  fillerDiscountPercent: number;
+  deviceDiscountPercent: number;
+  retailDiscountPercent: number;
+};
+
+export type Service = {
+  id: string;
+  name: string;
+  category: "injectable" | "filler" | "device" | "wellness" | "retail";
+  basePrice: number;
+};
+
+export type UserProfile = {
+  uid: string;
+  name: string;
+  email: string;
+  membershipTierId?: string;
+  beautyBucksBalance: number;
+  joinDate: string;
+  status: "active" | "paused" | "canceled";
+  role: "admin" | "user";
+};
+
+export type Transaction = {
+  id: string;
+  userId: string;
+  serviceId: string;
+  serviceName: string;
+  basePrice: number;
+  discountedPrice: number;
+  beautyBucksUsed: number;
+  finalPrice: number;
+  savings: number;
+  createdAt: string;
+};
+
+export type BeautyBucksLedger = {
+  id: string;
+  userId: string;
+  amount: number;
+  type: "credit" | "debit";
+  description: string;
+  expirationDate?: string;
+  createdAt: string;
+};
+
+export type Appointment = {
+  id: string;
+  userId: string;
+  serviceId: string;
+  serviceName: string;
+  date: string;
+  status: "scheduled" | "completed" | "canceled";
+};

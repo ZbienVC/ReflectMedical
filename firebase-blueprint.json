@@ -1,0 +1,117 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A patient profile with membership and balance details.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "membershipTierId": { "type": "string", "description": "Reference to MembershipTier" },
+        "beautyBucksBalance": { "type": "number", "description": "Current balance of Beauty Bucks" },
+        "joinDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "paused", "canceled"] },
+        "role": { "type": "string", "enum": ["admin", "user"] }
+      },
+      "required": ["uid", "email", "status"]
+    },
+    "MembershipTier": {
+      "title": "MembershipTier",
+      "description": "Defines the benefits and pricing for a membership level.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "monthlyPrice": { "type": "number" },
+        "monthlyCredits": { "type": "number", "description": "Beauty Bucks added monthly" },
+        "toxinDiscountBotox": { "type": "number", "description": "Price per unit for Botox" },
+        "toxinDiscountDysport": { "type": "number", "description": "Price per unit for Dysport" },
+        "fillerDiscountPercent": { "type": "number" },
+        "deviceDiscountPercent": { "type": "number" },
+        "retailDiscountPercent": { "type": "number" }
+      },
+      "required": ["name", "monthlyPrice", "monthlyCredits"]
+    },
+    "Service": {
+      "title": "Service",
+      "description": "A treatment or product offered by the center.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "category": { "type": "string", "enum": ["injectable", "filler", "device", "wellness", "retail"] },
+        "basePrice": { "type": "number" }
+      },
+      "required": ["name", "category", "basePrice"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A record of a service purchase.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "serviceId": { "type": "string" },
+        "serviceName": { "type": "string" },
+        "basePrice": { "type": "number" },
+        "discountedPrice": { "type": "number" },
+        "beautyBucksUsed": { "type": "number" },
+        "finalPrice": { "type": "number" },
+        "savings": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "serviceId", "finalPrice", "createdAt"]
+    },
+    "BeautyBucksLedger": {
+      "title": "BeautyBucksLedger",
+      "description": "History of Beauty Bucks credits and debits.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["credit", "debit"] },
+        "description": { "type": "string" },
+        "expirationDate": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "type", "createdAt"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "A scheduled treatment session.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "serviceId": { "type": "string" },
+        "serviceName": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["scheduled", "completed", "canceled"] }
+      },
+      "required": ["userId", "serviceId", "date", "status"]
+    }
+  },
+  "firestore": {
+    "/membershipTiers/{tierId}": {
+      "schema": "MembershipTier",
+      "description": "Available membership levels."
+    },
+    "/services/{serviceId}": {
+      "schema": "Service",
+      "description": "Treatment catalog."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles."
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "User transaction history."
+    },
+    "/users/{userId}/ledger/{ledgerId}": {
+      "schema": "BeautyBucksLedger",
+      "description": "User Beauty Bucks history."
+    },
+    "/users/{userId}/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "User appointments."
+    }
+  }
+}

@@ -1,0 +1,31 @@
+You are a Senior Full Stack Engineer + SaaS UX Specialist.
+Phases 1-6 are complete. Execute PHASE 7 to PHASE 9 of the FULL SYSTEM AUDIT and IMPROVEMENT PASS on this React + Vite + Firebase dermatology web app.
+
+CRITICAL RULES:
+- DO NOT delete or break existing working functionality. Improve, refactor, and extend.
+- Ensure all UI/UX strictly adheres to the PREMIUM DARK SAAS standards (Bg: #0F0F14, Card: #1C1C24, Primary: #6D28D9, Text: #FFFFFF, #A1A1AA). Use Lucide React icons.
+- Use Framer Motion for micro-animations.
+
+PHASE 7: TREATMENTS + PRICING ENGINE
+- Update treatment data with REALISTIC NJ PRICING:
+  Neurotoxins: Botox (-/unit), Dysport (-/unit), Xeomin (-/unit), Jeuveau (-/unit)
+  Fillers: - per syringe
+  Devices: Microneedling (-), Laser (-)
+- Add features to show savings per membership tier and "effective price after membership" on the Treatments/Catalog page.
+
+PHASE 8: DASHBOARD (CORE UX)
+- Refactor the main Dashboard component.
+- Build 4 sections: 
+  1) Overview (Beauty Balance, Savings this month, Membership status)
+  2) Activity (Recent Transactions/Treatments)
+  3) Suggested Treatments (Based on history/popular)
+  4) Quick Actions (Book appointment, Upgrade plan)
+- Fix any dead buttons, missing data, or poor layout hierarchy.
+
+PHASE 9: UI/UX POLISH
+- Add micro animations (hover, transitions) across all buttons and cards.
+- Add loading skeletons (replace simple "Loading..." text).
+- Add beautiful empty states for lists/tables.
+- Remove clutter, oversized buttons, and ensure a Stripe/Linear premium feel.
+
+Commit changes step-by-step when ready.
