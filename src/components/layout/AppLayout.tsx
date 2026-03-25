@@ -155,7 +155,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
       {/* Main Content Area */}
       <main className="flex-1 md:ml-64 min-h-screen pt-16 md:pt-0">
-        {children}
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          {children}
+        </div>
       </main>
     </div>
   );
