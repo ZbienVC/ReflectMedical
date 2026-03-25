@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "../components/layout/DashboardLayout";
-import { Card, Badge } from "../components/ui";
 import { 
   Users,
   Gift,
@@ -17,13 +17,12 @@ import {
   Award,
   Clock,
   CheckCircle,
-  ExternalLink,
   ArrowRight,
   Sparkles,
   Target,
-  Crown,
   Zap,
-  Plus
+  Plus,
+  Inbox
 } from "lucide-react";
 import { 
   userReferrals,
@@ -40,12 +39,23 @@ import {
   getReferralInsights,
   shareTemplates
 } from "../data/referralData";
+import { Skeleton, SkeletonCard } from "../components/ui/Skeleton";
+
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.07 } },
+};
+const item = {
+  hidden: { opacity: 0, y: 14 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+};
 
 const ReferralCenter: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"overview" | "referrals" | "rewards" | "share">("overview");
   const [selectedShareMethod, setSelectedShareMethod] = useState<"email" | "sms" | "social" | "link">("link");
   const [copiedLink, setCopiedLink] = useState(false);
-  
+  const [isLoading] = useState(false);
+
   const insights = getReferralInsights();
   const currentTier = getCurrentTier(referralStats.successfulReferrals);
   const nextTier = getNextTier(referralStats.successfulReferrals);
@@ -59,735 +69,691 @@ const ReferralCenter: React.FC = () => {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  const StatusIcon = ({ status }: { status: string }) => {
-    const iconProps = { className: "w-4 h-4" };
-    switch (status) {
-      case "pending":
-        return <Clock {...iconProps} className="w-4 h-4 text-yellow-500" />;
-      case "signed_up":
-        return <Users {...iconProps} className="w-4 h-4 text-blue-500" />;
-      case "first_treatment":
-        return <CheckCircle {...iconProps} className="w-4 h-4 text-[#B57EDC]" />;
-      case "completed":
-        return <Award {...iconProps} className="w-4 h-4 text-[#B57EDC]" />;
-      case "expired":
-        return <Clock {...iconProps} className="w-4 h-4 text-gray-400" />;
-      default:
-        return <Clock {...iconProps} className="w-4 h-4 text-gray-400" />;
-    }
+  const statusColor = (status: string) => {
+    if (status === "completed" || status === "first_treatment") return "bg-green-500/10 text-green-400 border-green-500/20";
+    if (status === "signed_up") return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+    if (status === "pending") return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+    return "bg-white/5 text-[#A1A1AA] border-white/10";
   };
 
-  const TierCard = ({ tier, isCurrent, isNext }: { tier: any, isCurrent: boolean, isNext: boolean }) => (
-    <div className={`p-4 rounded-xl border transition-all ${
-      isCurrent 
-        ? 'bg-gradient-to-br from-[#B57EDC]/10 to-[#9F6BCB]/10 border-[#B57EDC] shadow-lg' 
-        : isNext
-          ? 'bg-[#F7F6FB] border-[#B57EDC]/30 border-dashed'
-          : 'bg-white border-black/5'
-    }`}>
+  const StatusIcon = ({ status }: { status: string }) => {
+    const cls = "w-4 h-4";
+    if (status === "pending") return <Clock className={`${cls} text-yellow-400`} />;
+    if (status === "signed_up") return <Users className={`${cls} text-blue-400`} />;
+    if (status === "first_treatment" || status === "completed") return <CheckCircle className={`${cls} text-green-400`} />;
+    return <Clock className={`${cls} text-[#71717A]`} />;
+  };
+
+  const TierCard = ({ tier, isCurrent, isNext }: { tier: any; isCurrent: boolean; isNext: boolean }) => (
+    <motion.div
+      className={`p-4 rounded-xl border transition-colors ${
+        isCurrent
+          ? "bg-purple-600/10 border-purple-500/40"
+          : isNext
+          ? "bg-white/3 border-purple-500/20 border-dashed"
+          : "bg-[#0F0F14] border-white/5"
+      }`}
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.2 }}
+    >
       <div className="flex items-center gap-3 mb-3">
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg ${
-          isCurrent ? 'bg-[#B57EDC] text-white' : 'bg-gray-100 text-gray-600'
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-base ${
+          isCurrent ? "bg-purple-600 text-white" : "bg-white/5 text-[#A1A1AA]"
         }`}>
           {tier.icon}
         </div>
-        <div>
-          <h4 className={`font-semibold ${isCurrent ? 'text-[#B57EDC]' : 'text-[#1F2937]'}`}>
-            {tier.name}
-          </h4>
-          <p className="text-xs text-[#6B7280]">{tier.threshold}+ referrals</p>
+        <div className="flex-1">
+          <h4 className={`font-semibold text-sm ${isCurrent ? "text-purple-400" : "text-white"}`}>{tier.name}</h4>
+          <p className="text-xs text-[#71717A]">{tier.threshold}+ referrals</p>
         </div>
-        {isCurrent && (
-          <Badge className="bg-[#B57EDC] text-white text-xs ml-auto">Current</Badge>
-        )}
-        {isNext && (
-          <Badge variant="outline" className="border-[#B57EDC]/30 text-[#B57EDC] text-xs ml-auto">Next</Badge>
-        )}
+        {isCurrent && <span className="bg-purple-600/20 text-purple-400 text-xs px-2 py-0.5 rounded-full border border-purple-500/20">Current</span>}
+        {isNext && <span className="bg-white/5 text-[#A1A1AA] text-xs px-2 py-0.5 rounded-full border border-white/10">Next</span>}
       </div>
       <div className="space-y-1">
-        {tier.benefits.slice(0, 2).map((benefit: string, index: number) => (
-          <p key={index} className="text-xs text-[#6B7280] flex items-center gap-1">
-            <CheckCircle className="w-3 h-3 text-[#B57EDC]" />
+        {tier.benefits.slice(0, 2).map((benefit: string, i: number) => (
+          <p key={i} className="text-xs text-[#A1A1AA] flex items-center gap-1">
+            <CheckCircle className="w-3 h-3 text-purple-400 flex-shrink-0" />
             {benefit}
           </p>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
+
+  const tabs = [
+    { id: "overview", label: "Overview", icon: TrendingUp },
+    { id: "referrals", label: "My Referrals", icon: Users },
+    { id: "rewards", label: "Rewards", icon: Gift },
+    { id: "share", label: "Share & Invite", icon: Share2 },
+  ];
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-8 pb-12">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-[#1F2937]">Referral Center</h1>
-            <p className="text-[#6B7280] mt-1">Share the beauty experience and earn rewards</p>
+            <h1 className="text-3xl font-bold text-white">Referral Center</h1>
+            <p className="text-[#A1A1AA] mt-1">Share the beauty experience and earn rewards</p>
           </div>
           <div className="flex items-center gap-3">
-            <Badge className="bg-gradient-to-r from-[#B57EDC] to-[#9F6BCB] text-white px-4 py-2">
+            <span className="bg-purple-600/20 text-purple-300 text-sm font-semibold px-4 py-1.5 rounded-full border border-purple-500/30">
               {currentTier.icon} {currentTier.name}
-            </Badge>
-            <button 
+            </span>
+            <motion.button
               onClick={() => setActiveTab("share")}
-              className="bg-[#B57EDC] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#9F6BCB] transition-colors flex items-center gap-2"
+              className="bg-[#6D28D9] text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-[#5B21B6] transition-colors flex items-center gap-2 text-sm"
+              whileHover={{ scale: 1.02, y: -1 }}
+              whileTap={{ scale: 0.97 }}
             >
-              <Share2 className="w-5 h-5" />
+              <Share2 className="w-4 h-4" />
               Share Now
-            </button>
+            </motion.button>
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="p-6 bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB] text-white rounded-2xl shadow-xl">
-            <div className="flex items-center gap-4">
-              <Gift className="w-12 h-12 text-white/80" />
-              <div>
-                <p className="text-white/80 text-sm uppercase tracking-wider font-medium">Points Earned</p>
-                <p className="text-3xl font-bold">{formatPoints(referralStats.totalPointsEarned)}</p>
+        {/* Stats */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+            {[...Array(4)].map((_, i) => <SkeletonCard key={i} className="h-32" />)}
+          </div>
+        ) : (
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-4 gap-5"
+            variants={container}
+            initial="hidden"
+            animate="show"
+          >
+            <motion.div variants={item} className="p-5 bg-gradient-to-br from-purple-700 to-fuchsia-700 text-white rounded-2xl shadow-xl shadow-purple-900/30">
+              <div className="flex items-center gap-3">
+                <Gift className="w-10 h-10 text-white/80" />
+                <div>
+                  <p className="text-white/70 text-xs uppercase tracking-widest font-semibold">Points Earned</p>
+                  <p className="text-2xl font-black">{formatPoints(referralStats.totalPointsEarned)}</p>
+                </div>
               </div>
-            </div>
-          </Card>
+            </motion.div>
 
-          <Card className="p-6 bg-white rounded-2xl shadow-lg border border-black/5">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-[#B57EDC]/10 rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-[#B57EDC]" />
+            <motion.div variants={item} className="p-5 bg-[#1C1C24] rounded-2xl border border-white/5 hover:border-purple-500/20 transition-colors">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-11 h-11 bg-purple-600/15 rounded-xl flex items-center justify-center">
+                  <Users className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-[#71717A] text-xs uppercase tracking-widest font-semibold">Successful</p>
+                  <p className="text-2xl font-black text-white">{referralStats.successfulReferrals}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[#6B7280] text-sm uppercase tracking-wider font-medium">Successful Referrals</p>
-                <p className="text-2xl font-bold text-[#1F2937]">{referralStats.successfulReferrals}</p>
-              </div>
-            </div>
-            <p className="text-xs text-[#B57EDC]">{insights.conversionRate}% conversion rate</p>
-          </Card>
+              <p className="text-xs text-purple-400">{insights.conversionRate}% conversion</p>
+            </motion.div>
 
-          <Card className="p-6 bg-white rounded-2xl shadow-lg border border-black/5">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center">
-                <Clock className="w-6 h-6 text-yellow-600" />
+            <motion.div variants={item} className="p-5 bg-[#1C1C24] rounded-2xl border border-white/5 hover:border-yellow-500/20 transition-colors">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-11 h-11 bg-yellow-500/10 rounded-xl flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-[#71717A] text-xs uppercase tracking-widest font-semibold">Pending</p>
+                  <p className="text-2xl font-black text-white">{referralStats.pendingReferrals}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[#6B7280] text-sm uppercase tracking-wider font-medium">Pending</p>
-                <p className="text-2xl font-bold text-[#1F2937]">{referralStats.pendingReferrals}</p>
-              </div>
-            </div>
-            <p className="text-xs text-[#6B7280]">Awaiting signup</p>
-          </Card>
+              <p className="text-xs text-[#71717A]">Awaiting signup</p>
+            </motion.div>
 
-          <Card className="p-6 bg-white rounded-2xl shadow-lg border border-black/5">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-[#B57EDC]/10 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-[#B57EDC]" />
+            <motion.div variants={item} className="p-5 bg-[#1C1C24] rounded-2xl border border-white/5 hover:border-blue-500/20 transition-colors">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-11 h-11 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-[#71717A] text-xs uppercase tracking-widest font-semibold">Streak</p>
+                  <p className="text-2xl font-black text-white">{referralStats.currentStreak}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[#6B7280] text-sm uppercase tracking-wider font-medium">Current Streak</p>
-                <p className="text-2xl font-bold text-[#1F2937]">{referralStats.currentStreak}</p>
-              </div>
-            </div>
-            <p className="text-xs text-[#6B7280]">Consecutive months</p>
-          </Card>
-        </div>
+              <p className="text-xs text-[#71717A]">Consecutive months</p>
+            </motion.div>
+          </motion.div>
+        )}
 
-        {/* Navigation Tabs */}
-        <div className="flex bg-[#F7F6FB] rounded-lg p-1">
-          {[
-            { id: "overview", label: "Overview", icon: TrendingUp },
-            { id: "referrals", label: "My Referrals", icon: Users },
-            { id: "rewards", label: "Rewards", icon: Gift },
-            { id: "share", label: "Share & Invite", icon: Share2 }
-          ].map((tab) => (
-            <button
+        {/* Tabs */}
+        <div className="flex bg-[#1C1C24] rounded-xl p-1 border border-white/5 overflow-x-auto">
+          {tabs.map((tab) => (
+            <motion.button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-md font-medium transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-[#B57EDC] text-white shadow-lg'
-                  : 'text-[#6B7280] hover:text-[#B57EDC]'
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg font-medium text-sm transition-colors whitespace-nowrap min-w-0 ${
+                activeTab === tab.id ? "bg-[#6D28D9] text-white" : "text-[#A1A1AA] hover:text-white"
               }`}
+              whileHover={activeTab !== tab.id ? { scale: 1.01 } : {}}
+              whileTap={{ scale: 0.97 }}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-            </button>
+              <tab.icon className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </motion.button>
           ))}
         </div>
 
         {/* Tab Content */}
-        {activeTab === "overview" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Tier Progress */}
-              <Card className="p-6 bg-white rounded-2xl shadow-lg border border-black/5">
-                <h3 className="text-xl font-semibold text-[#1F2937] mb-6">Your Referral Journey</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <TierCard tier={currentTier} isCurrent={true} isNext={false} />
-                  {nextTier && <TierCard tier={nextTier} isCurrent={false} isNext={true} />}
-                </div>
-
-                {nextTier && (
-                  <div className="p-4 bg-[#F7F6FB] rounded-xl">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-semibold text-[#1F2937]">Progress to {nextTier.name}</h4>
-                      <span className="text-[#B57EDC] font-semibold">
-                        {insights.referralsUntilNextTier} more referrals
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div 
-                        className="bg-gradient-to-r from-[#B57EDC] to-[#9F6BCB] h-3 rounded-full transition-all duration-500"
-                        style={{ 
-                          width: `${(referralStats.successfulReferrals / nextTier.threshold) * 100}%` 
-                        }}
-                      />
-                    </div>
+        <AnimatePresence mode="wait">
+          {activeTab === "overview" && (
+            <motion.div
+              key="overview"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+            >
+              <div className="lg:col-span-2 space-y-5">
+                {/* Tier Progress */}
+                <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-6">
+                  <h3 className="text-lg font-bold text-white mb-5">Your Referral Journey</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                    <TierCard tier={currentTier} isCurrent={true} isNext={false} />
+                    {nextTier && <TierCard tier={nextTier} isCurrent={false} isNext={true} />}
                   </div>
-                )}
-              </Card>
-
-              {/* Recent Referrals */}
-              <Card className="p-6 bg-white rounded-2xl shadow-lg border border-black/5">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-[#1F2937]">Recent Referrals</h3>
-                  <button 
-                    onClick={() => setActiveTab("referrals")}
-                    className="text-[#B57EDC] hover:text-[#9F6BCB] font-medium text-sm flex items-center gap-1"
-                  >
-                    View All
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  {nextTier && (
+                    <div className="p-4 bg-[#0F0F14] rounded-xl border border-white/5">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-semibold text-white text-sm">Progress to {nextTier.name}</h4>
+                        <span className="text-purple-400 font-semibold text-sm">{insights.referralsUntilNextTier} more</span>
+                      </div>
+                      <div className="w-full bg-white/5 rounded-full h-2.5">
+                        <motion.div
+                          className="bg-gradient-to-r from-purple-600 to-fuchsia-500 h-2.5 rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(referralStats.successfulReferrals / nextTier.threshold) * 100}%` }}
+                          transition={{ duration: 0.8 }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-4">
-                  {userReferrals.slice(0, 4).map((referral) => (
-                    <div key={referral.id} className="flex items-center gap-4 p-4 bg-[#F7F6FB] rounded-xl">
-                      <StatusIcon status={referral.status} />
-                      <div className="flex-1">
-                        <p className="font-medium text-[#1F2937]">{referral.friendName}</p>
-                        <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-                          <span className="capitalize">{referral.status.replace('_', ' ')}</span>
-                          {referral.membershipTier && (
-                            <>
-                              <span>•</span>
-                              <span>{referral.membershipTier} tier</span>
-                            </>
-                          )}
+                {/* Recent Referrals */}
+                <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-6">
+                  <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-lg font-bold text-white">Recent Referrals</h3>
+                    <button onClick={() => setActiveTab("referrals")} className="text-purple-400 hover:text-purple-300 font-medium text-sm flex items-center gap-1 transition-colors">
+                      View All <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {userReferrals.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-3">
+                        <Inbox className="w-6 h-6 text-[#A1A1AA]" />
+                      </div>
+                      <p className="text-white font-semibold">No referrals yet</p>
+                      <p className="text-[#71717A] text-sm mt-1">Share your link to start earning rewards.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {userReferrals.slice(0, 4).map((referral) => (
+                        <div key={referral.id} className="flex items-center gap-4 p-3 bg-[#0F0F14] rounded-xl border border-white/5">
+                          <StatusIcon status={referral.status} />
+                          <div className="flex-1">
+                            <p className="font-semibold text-white text-sm">{referral.friendName}</p>
+                            <p className="text-xs text-[#71717A] capitalize">{referral.status.replace("_", " ")}{referral.membershipTier ? ` · ${referral.membershipTier}` : ""}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-white text-sm">{formatPoints(referral.pointsEarned)}</p>
+                            {referral.bonusPointsEarned && (
+                              <p className="text-xs text-green-400">+{formatPoints(referral.bonusPointsEarned)} bonus</p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-[#1F2937]">
-                          {formatPoints(referral.pointsEarned)}
-                        </p>
-                        {referral.bonusPointsEarned && (
-                          <p className="text-sm text-green-600">
-                            +{formatPoints(referral.bonusPointsEarned)} bonus
-                          </p>
-                        )}
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              </Card>
-            </div>
+              </div>
 
-            {/* Right Column */}
-            <div className="space-y-6">
-              {/* Quick Share */}
-              <Card className="p-6 bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB] text-white rounded-2xl shadow-xl">
-                <div className="flex items-center gap-3 mb-4">
-                  <Share2 className="w-6 h-6" />
-                  <h3 className="text-lg font-semibold">Share Your Link</h3>
-                </div>
-                <p className="text-white/90 mb-6 text-sm">
-                  Send your referral link and earn {formatPoints(100)} for each friend who joins
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={referralLink}
-                    readOnly
-                    className="flex-1 px-3 py-2 rounded-lg text-[#1F2937] text-sm bg-white/90"
-                  />
-                  <button
-                    onClick={() => copyToClipboard(referralLink)}
-                    className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors"
-                  >
-                    {copiedLink ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-              </Card>
-
-              {/* Performance Stats */}
-              <Card className="p-6 bg-white rounded-2xl shadow-lg border border-black/5">
-                <h3 className="text-lg font-semibold text-[#1F2937] mb-4">Performance</h3>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-[#6B7280]">Conversion Rate</span>
-                    <span className="font-semibold text-[#1F2937]">{insights.conversionRate}%</span>
+              {/* Right */}
+              <div className="space-y-5">
+                {/* Quick Share */}
+                <div className="bg-gradient-to-br from-purple-700 to-fuchsia-700 rounded-2xl p-5 shadow-xl shadow-purple-900/30">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Share2 className="w-5 h-5 text-white" />
+                    <h3 className="text-base font-bold text-white">Share Your Link</h3>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-[#6B7280]">Avg Points/Referral</span>
-                    <span className="font-semibold text-[#1F2937]">{insights.avgPointsPerReferral}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-[#6B7280]">Lifetime Value</span>
-                    <span className="font-semibold text-green-600">${referralStats.lifetimeValue.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-[#6B7280]">Global Rank</span>
-                    <span className="font-semibold text-[#B57EDC]">#{referralStats.rank}</span>
+                  <p className="text-white/80 mb-4 text-sm">Earn {formatPoints(100)} for each friend who joins</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={referralLink}
+                      readOnly
+                      className="flex-1 px-3 py-2 rounded-xl text-white text-sm bg-white/15 border border-white/20 focus:outline-none"
+                    />
+                    <motion.button
+                      onClick={() => copyToClipboard(referralLink)}
+                      className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-white transition-colors"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {copiedLink ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </motion.button>
                   </div>
                 </div>
-              </Card>
 
-              {/* Next Reward */}
-              <Card className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100">
-                <div className="flex items-center gap-3 mb-4">
-                  <Target className="w-6 h-6 text-green-600" />
-                  <h3 className="text-lg font-semibold text-green-800">Next Milestone</h3>
-                </div>
-                <p className="text-green-800 font-semibold mb-2">
-                  {formatPoints(insights.projectedMonthlyEarnings)} this month
-                </p>
-                <p className="text-sm text-green-600">
-                  Based on current pace
-                </p>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "referrals" && (
-          <div className="space-y-6">
-            {/* Referral Status Filter */}
-            <div className="flex gap-4 overflow-x-auto">
-              {[
-                { status: "all", label: "All Referrals", count: userReferrals.length },
-                { status: "pending", label: "Pending", count: pendingReferrals.length },
-                { status: "successful", label: "Successful", count: successfulReferrals.length }
-              ].map((filter) => (
-                <Badge
-                  key={filter.status}
-                  variant="outline"
-                  className="border-[#B57EDC]/20 text-[#6B7280] whitespace-nowrap cursor-pointer hover:border-[#B57EDC] hover:text-[#B57EDC]"
-                >
-                  {filter.label} ({filter.count})
-                </Badge>
-              ))}
-            </div>
-
-            {/* Referrals List */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {userReferrals.map((referral) => (
-                <Card key={referral.id} className="p-6 bg-white rounded-2xl shadow-lg border border-black/5">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white ${
-                        referral.status === 'completed' ? 'bg-[#B57EDC]' :
-                        referral.status === 'first_treatment' ? 'bg-green-500' :
-                        referral.status === 'signed_up' ? 'bg-blue-500' :
-                        referral.status === 'pending' ? 'bg-yellow-500' :
-                        'bg-gray-400'
-                      }`}>
-                        {referral.friendName.charAt(0)}
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-[#1F2937]">{referral.friendName}</h4>
-                        <p className="text-sm text-[#6B7280]">{referral.friendEmail}</p>
-                      </div>
-                    </div>
-                    <StatusIcon status={referral.status} />
-                  </div>
-
+                {/* Performance */}
+                <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-5">
+                  <h3 className="text-base font-bold text-white mb-4">Performance</h3>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#6B7280]">Status</span>
-                      <Badge variant="outline" className={`text-xs ${
-                        referral.status === 'completed' ? 'border-[#B57EDC] text-[#B57EDC]' :
-                        referral.status === 'first_treatment' ? 'border-green-500 text-green-700' :
-                        referral.status === 'signed_up' ? 'border-blue-500 text-blue-700' :
-                        referral.status === 'pending' ? 'border-yellow-500 text-yellow-700' :
-                        'border-gray-400 text-gray-700'
-                      }`}>
-                        {referral.status.replace('_', ' ')}
-                      </Badge>
-                    </div>
-
-                    {referral.membershipTier && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-[#6B7280]">Membership</span>
-                        <span className="text-sm font-medium text-[#1F2937]">{referral.membershipTier}</span>
+                    {[
+                      { label: "Conversion Rate", value: `${insights.conversionRate}%` },
+                      { label: "Avg Points/Referral", value: `${insights.avgPointsPerReferral}` },
+                      { label: "Lifetime Value", value: `$${referralStats.lifetimeValue.toLocaleString()}`, accent: "text-green-400" },
+                      { label: "Global Rank", value: `#${referralStats.rank}`, accent: "text-purple-400" },
+                    ].map(({ label, value, accent }) => (
+                      <div key={label} className="flex items-center justify-between">
+                        <span className="text-sm text-[#A1A1AA]">{label}</span>
+                        <span className={`font-semibold text-sm ${accent || "text-white"}`}>{value}</span>
                       </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#6B7280]">Points Earned</span>
-                      <span className="font-semibold text-[#1F2937]">{formatPoints(referral.pointsEarned)}</span>
-                    </div>
-
-                    {referral.bonusPointsEarned && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-[#6B7280]">Bonus Points</span>
-                        <span className="font-semibold text-green-600">+{formatPoints(referral.bonusPointsEarned)}</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#6B7280]">Sent</span>
-                      <span className="text-sm text-[#1F2937]">{referral.sentDate}</span>
-                    </div>
+                    ))}
                   </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
+                </div>
 
-        {activeTab === "rewards" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Reward Milestones */}
-            <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-[#1F2937]">Reward Milestones</h3>
-              
-              {referralRewards.map((reward) => (
-                <Card key={reward.id} className={`p-6 rounded-2xl shadow-lg border transition-all ${
-                  reward.isCompleted 
-                    ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200' 
-                    : 'bg-white border-black/5'
-                }`}>
-                  <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      reward.isCompleted 
-                        ? 'bg-green-500 text-white' 
-                        : 'bg-[#B57EDC]/10 text-[#B57EDC]'
-                    }`}>
-                      {reward.isCompleted ? (
-                        <CheckCircle className="w-6 h-6" />
-                      ) : (
-                        <Gift className="w-6 h-6" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-[#1F2937]">{reward.milestone}</h4>
-                        <span className={`font-bold ${
-                          reward.isCompleted ? 'text-green-600' : 'text-[#B57EDC]'
-                        }`}>
-                          {formatPoints(reward.pointsEarned)}
-                        </span>
-                      </div>
-                      <p className="text-sm text-[#6B7280] mb-3">{reward.description}</p>
-                      {reward.isCompleted ? (
-                        <Badge className="bg-green-100 text-green-700 text-xs">
-                          ✓ Completed {reward.completedDate}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="border-[#B57EDC]/20 text-[#B57EDC] text-xs">
-                          {reward.pointsRequired} referral{reward.pointsRequired > 1 ? 's' : ''} needed
-                        </Badge>
-                      )}
-                    </div>
+                {/* Next Milestone */}
+                <div className="bg-[#1C1C24] rounded-2xl border border-green-500/20 p-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Target className="w-5 h-5 text-green-400" />
+                    <h3 className="text-base font-bold text-white">Next Milestone</h3>
                   </div>
-                </Card>
-              ))}
-            </div>
+                  <p className="text-white font-bold mb-1">{formatPoints(insights.projectedMonthlyEarnings)} this month</p>
+                  <p className="text-sm text-[#A1A1AA]">Based on current pace</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
-            {/* Referral Tiers */}
-            <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-[#1F2937]">Referral Tiers</h3>
-              
-              {referralTiers.map((tier) => {
-                const isCurrent = tier.name === currentTier.name;
-                const isNext = tier.name === nextTier?.name;
-                const isUnlocked = referralStats.successfulReferrals >= tier.threshold;
-                
-                return (
-                  <Card key={tier.name} className={`p-6 rounded-2xl shadow-lg border transition-all ${
-                    isCurrent 
-                      ? 'bg-gradient-to-br from-[#B57EDC]/10 to-[#9F6BCB]/10 border-[#B57EDC]' 
-                      : isNext
-                        ? 'bg-[#F7F6FB] border-[#B57EDC]/30 border-dashed'
-                        : isUnlocked
-                          ? 'bg-white border-black/5'
-                          : 'bg-gray-50 border-gray-200'
-                  }`}>
-                    <div className="flex items-start gap-4">
-                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl ${
-                        isCurrent 
-                          ? 'bg-[#B57EDC] text-white shadow-lg' 
-                          : isUnlocked
-                            ? 'bg-white border-2 border-[#B57EDC]/20'
-                            : 'bg-gray-100 text-gray-400'
-                      }`}>
-                        {tier.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h4 className={`text-xl font-bold ${isCurrent ? 'text-[#B57EDC]' : 'text-[#1F2937]'}`}>
-                            {tier.name}
-                          </h4>
-                          {isCurrent && (
-                            <Badge className="bg-[#B57EDC] text-white text-xs">Current</Badge>
-                          )}
-                          {isNext && (
-                            <Badge variant="outline" className="border-[#B57EDC]/30 text-[#B57EDC] text-xs">Next</Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-[#6B7280] mb-4">
-                          {tier.threshold}+ successful referrals • {tier.bonusMultiplier}x multiplier
-                        </p>
-                        <div className="space-y-2">
-                          {tier.benefits.map((benefit, index) => (
-                            <div key={index} className="flex items-center gap-2">
-                              <CheckCircle className={`w-4 h-4 ${isUnlocked ? 'text-green-500' : 'text-gray-400'}`} />
-                              <span className={`text-sm ${isUnlocked ? 'text-[#1F2937]' : 'text-gray-500'}`}>
-                                {benefit}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "share" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Share Methods */}
-            <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-[#1F2937]">Share Your Referral Link</h3>
-              
-              {/* Share Method Selection */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {activeTab === "referrals" && (
+            <motion.div
+              key="referrals"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="space-y-5"
+            >
+              {/* Filters */}
+              <div className="flex gap-3 overflow-x-auto">
                 {[
-                  { id: "link", label: "Copy Link", icon: Copy },
-                  { id: "email", label: "Email", icon: Mail },
-                  { id: "sms", label: "SMS", icon: MessageSquare },
-                  { id: "social", label: "Social", icon: Share2 }
-                ].map((method) => (
-                  <button
-                    key={method.id}
-                    onClick={() => setSelectedShareMethod(method.id as any)}
-                    className={`p-4 rounded-xl border transition-all ${
-                      selectedShareMethod === method.id
-                        ? 'border-[#B57EDC] bg-[#B57EDC]/5'
-                        : 'border-black/10 hover:border-[#B57EDC]/20'
-                    }`}
-                  >
-                    <method.icon className={`w-6 h-6 mx-auto mb-2 ${
-                      selectedShareMethod === method.id ? 'text-[#B57EDC]' : 'text-[#6B7280]'
-                    }`} />
-                    <p className={`text-sm font-medium ${
-                      selectedShareMethod === method.id ? 'text-[#B57EDC]' : 'text-[#6B7280]'
-                    }`}>
-                      {method.label}
-                    </p>
-                  </button>
+                  { status: "all", label: "All", count: userReferrals.length },
+                  { status: "pending", label: "Pending", count: pendingReferrals.length },
+                  { status: "successful", label: "Successful", count: successfulReferrals.length },
+                ].map((f) => (
+                  <span key={f.status} className="px-4 py-1.5 rounded-full border border-white/10 text-sm text-[#A1A1AA] cursor-pointer hover:border-purple-500/40 hover:text-purple-400 transition-colors whitespace-nowrap">
+                    {f.label} ({f.count})
+                  </span>
                 ))}
               </div>
 
-              {/* Share Content */}
-              <Card className="p-6 bg-white rounded-2xl shadow-lg border border-black/5">
-                {selectedShareMethod === "link" && (
-                  <div>
-                    <h4 className="font-semibold text-[#1F2937] mb-4">Your Referral Link</h4>
-                    <div className="flex gap-2 mb-4">
-                      <input
-                        type="text"
-                        value={referralLink}
-                        readOnly
-                        className="flex-1 px-4 py-3 border border-black/10 rounded-xl focus:outline-none focus:border-[#B57EDC] bg-[#F7F6FB]"
-                      />
-                      <button
-                        onClick={() => copyToClipboard(referralLink)}
-                        className="px-6 py-3 bg-[#B57EDC] text-white rounded-xl font-medium hover:bg-[#9F6BCB] transition-colors flex items-center gap-2"
-                      >
-                        {copiedLink ? (
-                          <>
-                            <CheckCircle className="w-4 h-4" />
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-4 h-4" />
-                            Copy
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <p className="text-sm text-[#6B7280]">
-                      Share this link with friends to start earning referral points!
-                    </p>
+              {userReferrals.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-24 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+                    <Users className="w-8 h-8 text-[#A1A1AA]" />
                   </div>
-                )}
+                  <h3 className="text-white font-bold text-lg">No referrals yet</h3>
+                  <p className="text-[#71717A] text-sm mt-1 max-w-xs">Share your link and bring friends to Reflect.</p>
+                  <motion.button
+                    onClick={() => setActiveTab("share")}
+                    className="mt-6 bg-[#6D28D9] text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-[#5B21B6] transition-colors"
+                    whileHover={{ scale: 1.03, y: -1 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    Share My Link
+                  </motion.button>
+                </div>
+              ) : (
+                <motion.div
+                  className="grid grid-cols-1 lg:grid-cols-2 gap-5"
+                  variants={container}
+                  initial="hidden"
+                  animate="show"
+                >
+                  {userReferrals.map((referral) => (
+                    <motion.div
+                      key={referral.id}
+                      variants={item}
+                      className="bg-[#1C1C24] rounded-2xl border border-white/5 p-5 hover:border-white/10 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-white text-sm ${
+                            referral.status === "completed" || referral.status === "first_treatment" ? "bg-green-600/20 text-green-400" :
+                            referral.status === "signed_up" ? "bg-blue-600/20 text-blue-400" :
+                            referral.status === "pending" ? "bg-yellow-600/20 text-yellow-400" :
+                            "bg-white/5 text-[#A1A1AA]"
+                          }`}>
+                            {referral.friendName.charAt(0)}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-white text-sm">{referral.friendName}</h4>
+                            <p className="text-xs text-[#71717A]">{referral.friendEmail}</p>
+                          </div>
+                        </div>
+                        <StatusIcon status={referral.status} />
+                      </div>
 
-                {selectedShareMethod === "email" && (
-                  <div>
-                    <h4 className="font-semibold text-[#1F2937] mb-4">Email Template</h4>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-[#1F2937] mb-2">Subject</label>
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-[#A1A1AA]">Status</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${statusColor(referral.status)}`}>
+                            {referral.status.replace("_", " ")}
+                          </span>
+                        </div>
+                        {referral.membershipTier && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-[#A1A1AA]">Membership</span>
+                            <span className="text-sm text-white font-medium">{referral.membershipTier}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-[#A1A1AA]">Points Earned</span>
+                          <span className="font-semibold text-white text-sm">{formatPoints(referral.pointsEarned)}</span>
+                        </div>
+                        {referral.bonusPointsEarned && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-[#A1A1AA]">Bonus Points</span>
+                            <span className="font-semibold text-green-400 text-sm">+{formatPoints(referral.bonusPointsEarned)}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-[#A1A1AA]">Sent</span>
+                          <span className="text-sm text-white">{referral.sentDate}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === "rewards" && (
+            <motion.div
+              key="rewards"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+            >
+              {/* Milestones */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-white">Reward Milestones</h3>
+                {referralRewards.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center bg-[#1C1C24] rounded-2xl border border-white/5">
+                    <Gift className="w-10 h-10 text-[#A1A1AA] mb-3" />
+                    <p className="text-white font-semibold">No milestones yet</p>
+                    <p className="text-[#71717A] text-sm mt-1">Keep referring friends to unlock rewards.</p>
+                  </div>
+                ) : (
+                  <motion.div className="space-y-3" variants={container} initial="hidden" animate="show">
+                    {referralRewards.map((reward) => (
+                      <motion.div
+                        key={reward.id}
+                        variants={item}
+                        className={`p-5 rounded-2xl border transition-colors ${
+                          reward.isCompleted ? "bg-green-500/5 border-green-500/20" : "bg-[#1C1C24] border-white/5"
+                        }`}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                            reward.isCompleted ? "bg-green-500/20 text-green-400" : "bg-purple-600/15 text-purple-400"
+                          }`}>
+                            {reward.isCompleted ? <CheckCircle className="w-5 h-5" /> : <Gift className="w-5 h-5" />}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <h4 className="font-semibold text-white text-sm">{reward.milestone}</h4>
+                              <span className={`font-bold text-sm ${reward.isCompleted ? "text-green-400" : "text-purple-400"}`}>
+                                {formatPoints(reward.pointsEarned)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-[#A1A1AA] mb-2">{reward.description}</p>
+                            {reward.isCompleted ? (
+                              <span className="bg-green-500/10 text-green-400 text-xs px-2 py-0.5 rounded-full border border-green-500/20">
+                                Completed {reward.completedDate}
+                              </span>
+                            ) : (
+                              <span className="bg-white/5 text-[#A1A1AA] text-xs px-2 py-0.5 rounded-full border border-white/10">
+                                {reward.pointsRequired} referral{reward.pointsRequired > 1 ? "s" : ""} needed
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Tiers */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-white">Referral Tiers</h3>
+                <motion.div className="space-y-3" variants={container} initial="hidden" animate="show">
+                  {referralTiers.map((tier) => {
+                    const isCurrent = tier.name === currentTier.name;
+                    const isNext = tier.name === nextTier?.name;
+                    const isUnlocked = referralStats.successfulReferrals >= tier.threshold;
+
+                    return (
+                      <motion.div
+                        key={tier.name}
+                        variants={item}
+                        className={`p-5 rounded-2xl border transition-colors ${
+                          isCurrent ? "bg-purple-600/10 border-purple-500/40" :
+                          isNext ? "bg-white/2 border-purple-500/20 border-dashed" :
+                          isUnlocked ? "bg-[#1C1C24] border-white/5" :
+                          "bg-[#1C1C24] border-white/3 opacity-60"
+                        }`}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${
+                            isCurrent ? "bg-purple-600/20" : "bg-white/5"
+                          }`}>
+                            {tier.icon}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className={`font-bold ${isCurrent ? "text-purple-400" : "text-white"}`}>{tier.name}</h4>
+                              {isCurrent && <span className="bg-purple-600/20 text-purple-400 text-xs px-2 py-0.5 rounded-full border border-purple-500/20">Current</span>}
+                              {isNext && <span className="bg-white/5 text-[#A1A1AA] text-xs px-2 py-0.5 rounded-full border border-white/10">Next</span>}
+                            </div>
+                            <p className="text-xs text-[#71717A] mb-3">{tier.threshold}+ referrals · {tier.bonusMultiplier}x multiplier</p>
+                            <div className="space-y-1.5">
+                              {tier.benefits.map((benefit: string, i: number) => (
+                                <div key={i} className="flex items-center gap-2">
+                                  <CheckCircle className={`w-3.5 h-3.5 flex-shrink-0 ${isUnlocked ? "text-green-400" : "text-[#71717A]"}`} />
+                                  <span className={`text-xs ${isUnlocked ? "text-[#A1A1AA]" : "text-[#71717A]"}`}>{benefit}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === "share" && (
+            <motion.div
+              key="share"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+            >
+              {/* Share Methods */}
+              <div className="space-y-5">
+                <h3 className="text-xl font-bold text-white">Share Your Referral Link</h3>
+
+                {/* Method Selection */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { id: "link", label: "Copy Link", icon: Copy },
+                    { id: "email", label: "Email", icon: Mail },
+                    { id: "sms", label: "SMS", icon: MessageSquare },
+                    { id: "social", label: "Social", icon: Share2 },
+                  ].map((method) => (
+                    <motion.button
+                      key={method.id}
+                      onClick={() => setSelectedShareMethod(method.id as any)}
+                      className={`p-4 rounded-xl border transition-colors ${
+                        selectedShareMethod === method.id
+                          ? "border-purple-500/40 bg-purple-600/10"
+                          : "border-white/5 bg-[#1C1C24] hover:border-white/10"
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      <method.icon className={`w-5 h-5 mx-auto mb-2 ${selectedShareMethod === method.id ? "text-purple-400" : "text-[#A1A1AA]"}`} />
+                      <p className={`text-xs font-medium ${selectedShareMethod === method.id ? "text-purple-400" : "text-[#A1A1AA]"}`}>{method.label}</p>
+                    </motion.button>
+                  ))}
+                </div>
+
+                {/* Share Content */}
+                <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-6">
+                  {selectedShareMethod === "link" && (
+                    <div>
+                      <h4 className="font-semibold text-white mb-4">Your Referral Link</h4>
+                      <div className="flex gap-2 mb-3">
                         <input
                           type="text"
-                          value={shareTemplates.email.subject}
-                          className="w-full px-4 py-3 border border-black/10 rounded-xl focus:outline-none focus:border-[#B57EDC] bg-[#F7F6FB]"
+                          value={referralLink}
                           readOnly
+                          className="flex-1 px-4 py-2.5 border border-white/10 rounded-xl focus:outline-none focus:border-purple-500/40 bg-[#0F0F14] text-white text-sm"
                         />
+                        <motion.button
+                          onClick={() => copyToClipboard(referralLink)}
+                          className="px-5 py-2.5 bg-[#6D28D9] text-white rounded-xl font-semibold hover:bg-[#5B21B6] transition-colors flex items-center gap-2 text-sm"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.97 }}
+                        >
+                          {copiedLink ? <><CheckCircle className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy</>}
+                        </motion.button>
+                      </div>
+                      <p className="text-sm text-[#71717A]">Share this link with friends to earn referral points!</p>
+                    </div>
+                  )}
+
+                  {selectedShareMethod === "email" && (
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-white">Email Template</h4>
+                      <div>
+                        <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Subject</label>
+                        <input type="text" value={shareTemplates.email.subject} readOnly className="w-full px-4 py-2.5 border border-white/10 rounded-xl bg-[#0F0F14] text-white text-sm focus:outline-none" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-[#1F2937] mb-2">Message</label>
-                        <textarea
-                          value={shareTemplates.email.body.replace('{referralLink}', referralLink).replace('{yourName}', 'Sarah')}
-                          rows={8}
-                          className="w-full px-4 py-3 border border-black/10 rounded-xl focus:outline-none focus:border-[#B57EDC] bg-[#F7F6FB] resize-none"
-                          readOnly
-                        />
+                        <label className="block text-sm font-medium text-[#A1A1AA] mb-2">Message</label>
+                        <textarea value={shareTemplates.email.body.replace("{referralLink}", referralLink).replace("{yourName}", "Sarah")} rows={7} readOnly className="w-full px-4 py-2.5 border border-white/10 rounded-xl bg-[#0F0F14] text-white text-sm focus:outline-none resize-none" />
                       </div>
-                      <button className="w-full bg-[#B57EDC] text-white py-3 px-4 rounded-xl font-medium hover:bg-[#9F6BCB] transition-colors flex items-center justify-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        Open Email Client
-                      </button>
+                      <motion.button className="w-full bg-[#6D28D9] text-white py-2.5 px-4 rounded-xl font-semibold hover:bg-[#5B21B6] transition-colors flex items-center justify-center gap-2 text-sm" whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.97 }}>
+                        <Mail className="w-4 h-4" /> Open Email Client
+                      </motion.button>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {selectedShareMethod === "sms" && (
-                  <div>
-                    <h4 className="font-semibold text-[#1F2937] mb-4">SMS Template</h4>
+                  {selectedShareMethod === "sms" && (
                     <div className="space-y-4">
-                      <textarea
-                        value={shareTemplates.sms.message.replace('{referralLink}', referralLink)}
-                        rows={4}
-                        className="w-full px-4 py-3 border border-black/10 rounded-xl focus:outline-none focus:border-[#B57EDC] bg-[#F7F6FB] resize-none"
-                        readOnly
-                      />
-                      <button className="w-full bg-[#B57EDC] text-white py-3 px-4 rounded-xl font-medium hover:bg-[#9F6BCB] transition-colors flex items-center justify-center gap-2">
-                        <MessageSquare className="w-4 h-4" />
-                        Open Messages
-                      </button>
+                      <h4 className="font-semibold text-white">SMS Template</h4>
+                      <textarea value={shareTemplates.sms.message.replace("{referralLink}", referralLink)} rows={4} readOnly className="w-full px-4 py-2.5 border border-white/10 rounded-xl bg-[#0F0F14] text-white text-sm focus:outline-none resize-none" />
+                      <motion.button className="w-full bg-[#6D28D9] text-white py-2.5 px-4 rounded-xl font-semibold hover:bg-[#5B21B6] transition-colors flex items-center justify-center gap-2 text-sm" whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.97 }}>
+                        <MessageSquare className="w-4 h-4" /> Open Messages
+                      </motion.button>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {selectedShareMethod === "social" && (
-                  <div>
-                    <h4 className="font-semibold text-[#1F2937] mb-4">Social Media</h4>
+                  {selectedShareMethod === "social" && (
                     <div className="space-y-4">
-                      <textarea
-                        value={shareTemplates.social.message}
-                        rows={4}
-                        className="w-full px-4 py-3 border border-black/10 rounded-xl focus:outline-none focus:border-[#B57EDC] bg-[#F7F6FB] resize-none"
-                        readOnly
-                      />
+                      <h4 className="font-semibold text-white">Social Media</h4>
+                      <textarea value={shareTemplates.social.message} rows={4} readOnly className="w-full px-4 py-2.5 border border-white/10 rounded-xl bg-[#0F0F14] text-white text-sm focus:outline-none resize-none" />
                       <div className="grid grid-cols-3 gap-3">
                         {[
-                          { platform: "Instagram", icon: Instagram, color: "bg-pink-500" },
-                          { platform: "Facebook", icon: Facebook, color: "bg-blue-500" },
-                          { platform: "Twitter", icon: Twitter, color: "bg-sky-500" }
-                        ].map((social) => (
-                          <button
-                            key={social.platform}
-                            className={`${social.color} text-white py-3 px-4 rounded-xl font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2`}
-                          >
-                            <social.icon className="w-4 h-4" />
-                            <span className="hidden sm:inline">{social.platform}</span>
-                          </button>
+                          { platform: "Instagram", icon: Instagram, color: "bg-pink-600/20 text-pink-400 border-pink-500/20 hover:bg-pink-600/30" },
+                          { platform: "Facebook", icon: Facebook, color: "bg-blue-600/20 text-blue-400 border-blue-500/20 hover:bg-blue-600/30" },
+                          { platform: "Twitter", icon: Twitter, color: "bg-sky-600/20 text-sky-400 border-sky-500/20 hover:bg-sky-600/30" },
+                        ].map((s) => (
+                          <motion.button key={s.platform} className={`border py-2.5 px-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm ${s.color}`} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                            <s.icon className="w-4 h-4" />
+                            <span className="hidden sm:inline">{s.platform}</span>
+                          </motion.button>
                         ))}
                       </div>
                     </div>
-                  </div>
-                )}
-              </Card>
-            </div>
+                  )}
+                </div>
+              </div>
 
-            {/* Referral Tips */}
-            <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-[#1F2937]">Referral Tips</h3>
-              
-              <Card className="p-6 bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB] text-white rounded-2xl shadow-xl">
-                <div className="flex items-center gap-3 mb-4">
-                  <Sparkles className="w-6 h-6" />
-                  <h4 className="text-lg font-semibold">Maximize Your Earnings</h4>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                    <p className="text-sm text-white/90">Share with friends who are interested in skincare and aesthetic treatments</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                    <p className="text-sm text-white/90">Explain the membership savings - they can save hundreds on their first treatment</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                    <p className="text-sm text-white/90">Share your own results and experiences to build trust</p>
-                  </div>
-                </div>
-              </Card>
+              {/* Tips */}
+              <div className="space-y-5">
+                <h3 className="text-xl font-bold text-white">Referral Tips</h3>
 
-              <Card className="p-6 bg-white rounded-2xl shadow-lg border border-black/5">
-                <h4 className="font-semibold text-[#1F2937] mb-4">How It Works</h4>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-[#B57EDC]/10 rounded-lg flex items-center justify-center">
-                      <Share2 className="w-4 h-4 text-[#B57EDC]" />
-                    </div>
-                    <div>
-                      <h5 className="font-medium text-[#1F2937]">Share Your Link</h5>
-                      <p className="text-sm text-[#6B7280]">Send your unique referral link to friends</p>
-                    </div>
+                <div className="bg-gradient-to-br from-purple-700 to-fuchsia-700 rounded-2xl p-5 shadow-xl shadow-purple-900/30">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Sparkles className="w-5 h-5 text-white" />
+                    <h4 className="text-base font-bold text-white">Maximize Your Earnings</h4>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-[#B57EDC]/10 rounded-lg flex items-center justify-center">
-                      <Users className="w-4 h-4 text-[#B57EDC]" />
-                    </div>
-                    <div>
-                      <h5 className="font-medium text-[#1F2937]">Friend Signs Up</h5>
-                      <p className="text-sm text-[#6B7280]">They create an account and choose a membership</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-[#B57EDC]/10 rounded-lg flex items-center justify-center">
-                      <Gift className="w-4 h-4 text-[#B57EDC]" />
-                    </div>
-                    <div>
-                      <h5 className="font-medium text-[#1F2937]">Earn Points</h5>
-                      <p className="text-sm text-[#6B7280]">Get points when they complete their first treatment</p>
-                    </div>
+                  <div className="space-y-3">
+                    {[
+                      "Share with friends interested in skincare and aesthetic treatments",
+                      "Explain the membership savings — they can save hundreds on their first treatment",
+                      "Share your own results and experiences to build trust",
+                    ].map((tip, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5">{i + 1}</div>
+                        <p className="text-sm text-white/85">{tip}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </Card>
 
-              <Card className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100">
-                <div className="flex items-center gap-3 mb-4">
-                  <Award className="w-6 h-6 text-green-600" />
-                  <h4 className="font-semibold text-green-800">Bonus Opportunities</h4>
+                <div className="bg-[#1C1C24] rounded-2xl border border-white/5 p-5">
+                  <h4 className="font-bold text-white mb-4">How It Works</h4>
+                  <div className="space-y-4">
+                    {[
+                      { icon: Share2, title: "Share Your Link", desc: "Send your unique referral link to friends" },
+                      { icon: Users, title: "Friend Signs Up", desc: "They create an account and choose a membership" },
+                      { icon: Gift, title: "Earn Points", desc: "Get points when they complete their first treatment" },
+                    ].map(({ icon: Icon, title, desc }) => (
+                      <div key={title} className="flex items-start gap-3">
+                        <div className="w-9 h-9 bg-purple-600/15 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <Icon className="w-4 h-4 text-purple-400" />
+                        </div>
+                        <div>
+                          <h5 className="font-semibold text-white text-sm">{title}</h5>
+                          <p className="text-xs text-[#A1A1AA] mt-0.5">{desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-green-700">Premium tier signup</span>
-                    <span className="font-semibold text-green-600">+75 pts bonus</span>
+
+                <div className="bg-[#1C1C24] rounded-2xl border border-green-500/20 p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Award className="w-5 h-5 text-green-400" />
+                    <h4 className="font-bold text-white">Bonus Opportunities</h4>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-green-700">Monthly streak</span>
-                    <span className="font-semibold text-green-600">+200 pts bonus</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-green-700">Tier advancement</span>
-                    <span className="font-semibold text-green-600">Multiplier boost</span>
+                  <div className="space-y-2.5">
+                    {[
+                      { label: "Premium tier signup", value: "+75 pts bonus" },
+                      { label: "Monthly streak", value: "+200 pts bonus" },
+                      { label: "Tier advancement", value: "Multiplier boost" },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex items-center justify-between">
+                        <span className="text-sm text-[#A1A1AA]">{label}</span>
+                        <span className="font-semibold text-green-400 text-sm">{value}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </Card>
-            </div>
-          </div>
-        )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </DashboardLayout>
   );

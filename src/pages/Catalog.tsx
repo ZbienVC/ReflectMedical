@@ -1,13 +1,25 @@
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "../AuthContext";
 import { db } from "../firebase";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { Service, MembershipTier } from "../types";
 import { formatCurrency } from "../lib/utils";
 import { calculateDiscountedPrice } from "../services/membershipService";
-import { ShoppingCart, Sparkles, Tag, ArrowRight } from "lucide-react";
+import { ShoppingCart, Sparkles, Tag, ArrowRight, PackageSearch } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
+import { Skeleton, SkeletonCard } from "../components/ui/Skeleton";
+
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+};
 
 const Catalog: React.FC = () => {
   const { profile } = useAuth();
@@ -34,96 +46,154 @@ const Catalog: React.FC = () => {
 
   if (loading) return (
     <AppLayout>
-      <div className="py-20 text-center text-slate-400">Loading catalog...</div>
+      <div className="pt-6 space-y-10">
+        {/* Header skeleton */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-3">
+            <Skeleton className="h-9 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <div className="bg-[#1C1C24] rounded-2xl p-4 border border-white/5 flex items-center gap-4 w-48">
+            <Skeleton className="w-10 h-10 rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-5 w-20" />
+            </div>
+          </div>
+        </div>
+
+        {/* Cards skeleton */}
+        {[...Array(2)].map((_, si) => (
+          <div key={si} className="space-y-4">
+            <Skeleton className="h-6 w-40" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[...Array(3)].map((_, ci) => <SkeletonCard key={ci} className="h-52" />)}
+            </div>
+          </div>
+        ))}
+      </div>
     </AppLayout>
   );
 
+  const hasServices = services.length > 0;
+
   return (
     <AppLayout>
-      <main className="pt-6">
-        <div className="space-y-12">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="max-w-xl">
-          <h1 className="text-4xl font-serif font-bold text-slate-900 mb-2">Treatment Catalog</h1>
-          <p className="text-slate-500 font-medium">
-            Browse our medical-grade treatments and products. {tier ? `Your ${tier.name} discounts are active.` : "Join a membership to unlock exclusive pricing."}
-          </p>
-        </div>
-        <div className="flex items-center gap-4 bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
-          <div className="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center">
-            <Sparkles className="text-emerald-600 w-5 h-5" />
+      <motion.div
+        className="pt-6 space-y-10 pb-12"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="max-w-xl">
+            <h1 className="text-3xl font-bold text-white mb-2">Treatment Catalog</h1>
+            <p className="text-[#A1A1AA]">
+              Browse our medical-grade treatments.{" "}
+              {tier
+                ? <span className="text-purple-400">{tier.name} discounts are active.</span>
+                : "Join a membership to unlock exclusive pricing."}
+            </p>
           </div>
-          <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Balance</p>
-            <p className="text-lg font-serif font-bold text-slate-900">{formatCurrency(profile?.beautyBucksBalance || 0)}</p>
-          </div>
-        </div>
-      </header>
-
-      {categories.map((cat) => {
-        const catServices = services.filter((s) => s.category === cat);
-        if (catServices.length === 0) return null;
-
-        return (
-          <section key={cat} className="space-y-6">
-            <h2 className="text-xl font-serif font-bold text-slate-900 capitalize flex items-center gap-2">
-              <div className="w-1 h-6 bg-emerald-500 rounded-full" />
-              {cat}s
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {catServices.map((service) => {
-                const { discountedPrice, savings } = calculateDiscountedPrice(service, tier);
-                const isInjectable = service.category === "injectable";
-
-                return (
-                  <div key={service.id} className="group bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all duration-300">
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-emerald-50 transition-colors">
-                        <Tag className="text-slate-400 group-hover:text-emerald-600 w-5 h-5 transition-colors" />
-                      </div>
-                      {savings > 0 && (
-                        <div className="bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
-                          Save {formatCurrency(savings)}
-                        </div>
-                      )}
-                    </div>
-
-                    <h3 className="text-lg font-serif font-bold text-slate-900 mb-1">{service.name}</h3>
-                    <p className="text-xs text-slate-400 font-medium mb-6 uppercase tracking-wider">{service.category}</p>
-
-                    <div className="flex items-end justify-between mb-6">
-                      <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Member Price</p>
-                        <p className="text-2xl font-serif font-bold text-slate-900">
-                          {formatCurrency(discountedPrice)}
-                          {isInjectable && <span className="text-xs text-slate-400 ml-1">/unit</span>}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Base</p>
-                        <p className="text-sm font-medium text-slate-400 line-through">
-                          {formatCurrency(service.basePrice)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => navigate(`/checkout/${service.id}`)}
-                      className="w-full py-3 bg-slate-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-emerald-600 transition-all group-hover:shadow-lg group-hover:shadow-emerald-200"
-                    >
-                      Book Treatment <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                );
-              })}
+          <div className="flex items-center gap-4 bg-[#1C1C24] p-4 rounded-2xl border border-white/5">
+            <div className="w-10 h-10 bg-purple-600/20 rounded-xl flex items-center justify-center">
+              <Sparkles className="text-purple-400 w-5 h-5" />
             </div>
-          </section>
-        );
-      })}
-      </div>
-    </main>
-  </AppLayout>
-);
+            <div>
+              <p className="text-[10px] font-bold text-[#71717A] uppercase tracking-widest">Your Balance</p>
+              <p className="text-lg font-bold text-white">{formatCurrency(profile?.beautyBucksBalance || 0)}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Empty State */}
+        {!hasServices && (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+              <PackageSearch className="w-8 h-8 text-[#A1A1AA]" />
+            </div>
+            <h3 className="text-white font-bold text-lg">No treatments available</h3>
+            <p className="text-[#71717A] text-sm mt-1 max-w-xs">Check back soon — we're always adding new services.</p>
+          </div>
+        )}
+
+        {/* Categories */}
+        {categories.map((cat) => {
+          const catServices = services.filter((s) => s.category === cat);
+          if (catServices.length === 0) return null;
+
+          return (
+            <section key={cat} className="space-y-5">
+              <h2 className="text-lg font-bold text-white capitalize flex items-center gap-3">
+                <div className="w-1 h-5 bg-purple-500 rounded-full" />
+                {cat}s
+              </h2>
+
+              <motion.div
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+                variants={container}
+                initial="hidden"
+                animate="show"
+              >
+                {catServices.map((service) => {
+                  const { discountedPrice, savings } = calculateDiscountedPrice(service, tier);
+                  const isInjectable = service.category === "injectable";
+
+                  return (
+                    <motion.div
+                      key={service.id}
+                      variants={item}
+                      className="group bg-[#1C1C24] rounded-2xl p-6 border border-white/5 hover:border-purple-500/30 transition-colors duration-200"
+                      whileHover={{ y: -3, scale: 1.01 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex justify-between items-start mb-5">
+                        <div className="w-11 h-11 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-purple-600/15 transition-colors">
+                          <Tag className="text-[#71717A] group-hover:text-purple-400 w-5 h-5 transition-colors" />
+                        </div>
+                        {savings > 0 && (
+                          <div className="bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border border-green-500/20">
+                            Save {formatCurrency(savings)}
+                          </div>
+                        )}
+                      </div>
+
+                      <h3 className="text-base font-bold text-white mb-1">{service.name}</h3>
+                      <p className="text-xs text-[#71717A] font-medium mb-5 uppercase tracking-wider">{service.category}</p>
+
+                      <div className="flex items-end justify-between mb-5">
+                        <div>
+                          <p className="text-[10px] font-bold text-[#71717A] uppercase tracking-widest mb-1">Member Price</p>
+                          <p className="text-2xl font-bold text-white">
+                            {formatCurrency(discountedPrice)}
+                            {isInjectable && <span className="text-xs text-[#71717A] ml-1">/unit</span>}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-bold text-[#71717A] uppercase tracking-widest mb-1">Base</p>
+                          <p className="text-sm text-[#71717A] line-through">{formatCurrency(service.basePrice)}</p>
+                        </div>
+                      </div>
+
+                      <motion.button
+                        onClick={() => navigate(`/checkout/${service.id}`)}
+                        className="w-full py-2.5 bg-[#6D28D9] text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-[#5B21B6] transition-colors text-sm"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                      >
+                        Book Treatment <ArrowRight className="w-4 h-4" />
+                      </motion.button>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            </section>
+          );
+        })}
+      </motion.div>
+    </AppLayout>
+  );
 };
 
 export default Catalog;
