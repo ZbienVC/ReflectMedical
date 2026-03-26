@@ -1,24 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import "tailwindcss";
 
-/* Tailwind v4 dark mode variant */
+/* Tailwind v4 dark mode via class */
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-
   --color-primary: #7C3AED;
   --color-secondary: #6D28D9;
-  --color-accent: #F3F0FF;
-  --color-background: #F8F7FB;
-  --color-card: #FFFFFF;
-  --color-border: #E5E7EB;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6B7280;
 }
 
-:root {
+/* ── Light theme (default) ── */
+:root,
+html.light {
   --bg: #F8F7FB;
   --card: #FFFFFF;
   --card-subtle: #F9FAFB;
@@ -28,9 +23,14 @@
   --primary: #7C3AED;
   --primary-hover: #6D28D9;
   --success: #10B981;
+  --sidebar-bg: #FFFFFF;
+  --sidebar-border: #E5E7EB;
+  --input-bg: #FFFFFF;
+  --input-border: #E5E7EB;
 }
 
-.dark {
+/* ── Dark theme ── */
+html.dark {
   --bg: #0B0B0F;
   --card: #111827;
   --card-subtle: #1F2937;
@@ -40,16 +40,39 @@
   --primary: #8B5CF6;
   --primary-hover: #7C3AED;
   --success: #10B981;
+  --sidebar-bg: #111827;
+  --sidebar-border: #1F2937;
+  --input-bg: #1F2937;
+  --input-border: #374151;
   color-scheme: dark;
 }
 
+/* ── Base styles using CSS variables ── */
 @layer base {
   html {
     @apply antialiased;
   }
+
   body {
-    background-color: var(--bg);
-    color: var(--text-primary);
+    background-color: var(--bg) !important;
+    color: var(--text-primary) !important;
     transition: background-color 0.2s ease, color 0.2s ease;
+    min-height: 100vh;
+  }
+
+  /* Cards */
+  .theme-card {
+    background-color: var(--card);
+    border-color: var(--border);
+    color: var(--text-primary);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  /* Inputs */
+  input, textarea, select {
+    background-color: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--text-primary) !important;
+    transition: background-color 0.2s ease;
   }
 }
