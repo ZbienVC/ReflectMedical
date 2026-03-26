@@ -218,7 +218,7 @@ const EnhancedMembership: React.FC = () => {
                 {
                   name: "Sarah Johnson",
                   rating: 5,
-                  text: "The Evolve tier has been incredible! My confidence has never been higher, and the Beauty Bucks make every treatment feel like an investment that pays for itself.",
+                  text: "The Evolve tier has been incredible! My confidence has never been higher, and the credits make every treatment feel like an investment that pays for itself.",
                   treatment: "HydraFacial",
                   tier: "Evolve",
                   image: "SJ"
@@ -275,261 +275,194 @@ const EnhancedMembership: React.FC = () => {
         {/* 3. MEMBERSHIP PLANS - Decision Point */}
         <section id="membership-tiers" className="py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50/50 to-white"></div>
-          <div className="absolute inset-0">
-            <div className="absolute top-10 left-10 w-72 h-72 bg-gradient-to-br from-medical-green/4 to-transparent rounded-full blur-3xl"></div>
-            <div className="absolute bottom-10 right-10 w-64 h-64 bg-gradient-to-br from-navy/4 to-transparent rounded-full blur-3xl"></div>
-          </div>
           <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <Badge variant="outline" size="lg" className="mb-8 px-6 py-2 border-[#B57EDC]/20 text-[#B57EDC]">
-                Premium Membership Plans
-              </Badge>
-              <h2 className="text-4xl md:text-5xl font-black text-[#1F2937] mb-6 tracking-tight">
-                Choose Your Wellness Journey
+            {/* Section Header */}
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">
+                Choose Your Membership
               </h2>
-              <p className="text-xl text-[#6B7280] max-w-4xl mx-auto leading-relaxed">
-                Every membership includes exclusive pricing and monthly Beauty Bucks credits. 
-                <span className="text-[#1F2937] font-bold"> All plans pay for themselves through member savings.</span>
+              <p className="text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                Every membership includes exclusive member pricing and monthly credits toward any treatment.
               </p>
             </div>
-            <motion.div 
-              className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.6, ease: "easeInOut" }}
-            >
-              {tiers.map((tier, index) => {
+
+            {/* Billing Toggle */}
+            <div className="flex justify-center mb-12">
+              <div className="inline-flex items-center bg-gray-100 rounded-full p-1 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setIsAnnual(false)}
+                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                    !isAnnual ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAnnual(true)}
+                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+                    isAnnual ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Annual
+                  <span className="bg-violet-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                    Save 15%
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Cards Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+              {[
+                {
+                  id: "core",
+                  name: "Core",
+                  description: "Essential maintenance for lasting glow.",
+                  monthlyPrice: 84,
+                  credits: 99,
+                  badge: null,
+                  featured: false,
+                  features: [
+                    "Botox: $12/unit (reg. $15)",
+                    "10% Off All Skincare & Fillers",
+                    "Priority Booking Window",
+                    "Monthly Skin Analysis",
+                  ]
+                },
+                {
+                  id: "evolve",
+                  name: "Evolve",
+                  description: "Enhanced rejuvenation and expert care.",
+                  monthlyPrice: 124,
+                  credits: 150,
+                  badge: "Most Popular",
+                  featured: true,
+                  features: [
+                    "Botox: $10/unit (reg. $15)",
+                    "15% Off All Skincare & Fillers",
+                    "Complimentary Monthly B12 Shot",
+                    "Early Access to Seasonal Events",
+                    "Dedicated Aesthetician",
+                  ]
+                },
+                {
+                  id: "transform",
+                  name: "Transform",
+                  description: "The ultimate aesthetic concierge experience.",
+                  monthlyPrice: 200,
+                  credits: 250,
+                  badge: "Premium",
+                  featured: false,
+                  features: [
+                    "Botox: $8/unit (reg. $15)",
+                    "20% Off All Medical Services",
+                    "Unlimited Hydrafacial Upgrades",
+                    "VIP Concierge Support Line",
+                    "Quarterly 3D Skin Mapping",
+                  ]
+                }
+              ].map((tier, index) => {
                 const isCurrent = profile?.membershipTierId === tier.id;
-                const isPopular = tier.name === "Evolve";
-                const annualPrice = isAnnual ? tier.monthlyPrice * 12 * 0.85 : tier.monthlyPrice;
-                const displayPrice = isAnnual ? Math.round(annualPrice / 12) : tier.monthlyPrice;
+                const displayPrice = isAnnual ? Math.round(tier.monthlyPrice * 0.85) : tier.monthlyPrice;
+                const annualTotal = Math.round(tier.monthlyPrice * 12 * 0.85);
 
                 return (
                   <motion.div
                     key={tier.id}
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.8 + index * 0.2, ease: "easeInOut" }}
-                    className={`relative ${
-                      isPopular ? "scale-105 z-10" : "hover:scale-105"
-                    } transition-all duration-200`}
+                    transition={{ duration: 0.5, delay: 0.1 + index * 0.1, ease: "easeOut" }}
+                    whileHover={{ y: -4, boxShadow: "0 12px 32px rgba(124,58,237,0.12)" }}
+                    className={`bg-white rounded-2xl p-6 flex flex-col ${
+                      tier.featured
+                        ? "border border-violet-300 shadow-md"
+                        : "border border-gray-200 shadow-sm"
+                    }`}
                   >
-                    <Card
-                      variant="default"
-                      padding="none"
-                      className={`h-full relative overflow-hidden rounded-2xl ${
-                        tier.name === 'Core' 
-                          ? "bg-white border-2 border-black/5 shadow-lg hover:shadow-xl hover:border-[#B57EDC]/20 transition-all duration-300"
-                        : tier.name === 'Evolve'
-                          ? "bg-gradient-to-br from-white via-white to-[#B57EDC]/5 border-2 border-[#B57EDC] shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 ring-2 ring-[#B57EDC]/20"
-                        : "bg-gradient-to-br from-[#1F2937] via-gray-900 to-gray-800 text-white border-2 border-[#B57EDC] shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 ring-2 ring-[#B57EDC]/30"
+                    {/* 1. Badge row */}
+                    <div className="h-7 mb-4 flex items-center">
+                      {tier.badge && (
+                        <span className="bg-violet-600 text-white rounded-full text-xs px-3 py-1 font-semibold">
+                          {tier.badge}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 2. Icon */}
+                    <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center mb-4">
+                      {tier.name === "Core" && <Shield className="w-6 h-6 text-violet-600" />}
+                      {tier.name === "Evolve" && <Sparkles className="w-6 h-6 text-violet-600" />}
+                      {tier.name === "Transform" && <Crown className="w-6 h-6 text-violet-600" />}
+                    </div>
+
+                    {/* 3. Tier name */}
+                    <h3 className="text-xl font-bold text-gray-900">{tier.name}</h3>
+
+                    {/* 4. Description */}
+                    <p className="text-sm text-gray-500 mt-1 mb-5">{tier.description}</p>
+
+                    {/* 5. Price */}
+                    <div className="flex items-baseline gap-1 mb-1">
+                      <span className="text-4xl font-black text-gray-900">${displayPrice}</span>
+                      <span className="text-base font-normal text-gray-500">/month</span>
+                    </div>
+
+                    {/* 6. Annual savings note */}
+                    <div className="h-5 mb-5">
+                      {isAnnual && (
+                        <p className="text-xs text-violet-600 font-medium">
+                          Billed ${annualTotal}/year — you save ${tier.monthlyPrice * 12 - annualTotal}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* 7. Credits box */}
+                    <div className="bg-violet-50 rounded-xl p-4 text-center mb-5">
+                      <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide mb-1">Monthly Credits</p>
+                      <p className="text-2xl font-black text-violet-700">${tier.credits}</p>
+                      <p className="text-xs text-gray-500">in treatment value</p>
+                    </div>
+
+                    {/* 8. Divider */}
+                    <hr className="border-gray-100 mb-5" />
+
+                    {/* 9. Feature list */}
+                    <ul className="space-y-3 flex-grow mb-6">
+                      {tier.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <CheckCircle2 className="text-violet-500 w-4 h-4 flex-shrink-0" />
+                          <span className="text-sm text-gray-700">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* 10. CTA Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleJoin({ ...tier, monthlyPrice: tier.monthlyPrice })}
+                      disabled={isCurrent}
+                      className={`w-full rounded-xl py-3 font-semibold text-sm transition-all duration-200 ${
+                        isCurrent
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : tier.featured
+                          ? "bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-500/20"
+                          : "bg-violet-600 hover:bg-violet-700 text-white"
                       }`}
                     >
-                      {isPopular && (
-                        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-30">
-                          <div className="bg-gradient-to-r from-[#B57EDC] to-[#9F6BCB] text-white px-6 py-3 rounded-full shadow-2xl border-4 border-white">
-                            <span className="font-black text-sm uppercase tracking-widest">
-                              Most Popular
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {tier.name === 'Transform' && (
-                        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-30">
-                          <div className="bg-gradient-to-r from-[#1F2937] to-gray-800 text-white px-6 py-3 rounded-full shadow-2xl border-4 border-white">
-                            <span className="font-black text-sm uppercase tracking-widest">
-                              Premium
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="relative z-10 p-6 lg:p-8 flex flex-col h-full">
-                        {/* 1. Header Section */}
-                        <div className="flex flex-col items-center text-center mb-6">
-                          <div 
-                            className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-4 ${
-                              tier.name === 'Core' ? 'bg-[#F4EEFB] text-[#B57EDC]' :
-                              tier.name === 'Evolve' ? 'bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB] text-white' :
-                              'bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB] text-white'
-                            }`}
-                          >
-                            {tier.name === 'Core' ? <Shield className="w-8 h-8" /> :
-                             tier.name === 'Evolve' ? <Star className="w-8 h-8" /> :
-                             <Crown className="w-8 h-8" />}
-                          </div>
-                          <h3 className={`font-bold tracking-tight text-2xl mb-2 ${
-                            tier.name === 'Transform' ? 'text-white' : 'text-[#1F2937]'
-                          }`}>
-                            {tier.name}
-                          </h3>
-                          <p className={`text-sm h-10 ${
-                            tier.name === 'Transform' ? 'text-gray-300' : 'text-[#6B7280]'
-                          }`}>
-                            {tier.name === 'Core' && 'Essential maintenance for lasting glow.'}
-                            {tier.name === 'Evolve' && 'Enhanced rejuvenation and expert care.'}
-                            {tier.name === 'Transform' && 'The ultimate aesthetic concierge experience.'}
-                          </p>
-                        </div>
-
-                        {/* 2. Price Section */}
-                        <div className="text-center mb-6">
-                          <div className="flex items-baseline justify-center gap-1 mb-2">
-                            <span className={`font-black tracking-tight text-4xl lg:text-5xl ${
-                              tier.name === 'Transform' ? 'text-white' : 'text-[#1F2937]'
-                            }`}>
-                              {formatCurrency(displayPrice).replace(/\.00$/, '')}
-                            </span>
-                            <span className={`text-sm font-semibold ${
-                              tier.name === 'Transform' ? 'text-gray-400' : 'text-[#6B7280]'
-                            }`}>
-                              /month
-                            </span>
-                          </div>
-                          <div className="h-6">
-                            {isAnnual && (
-                              <Badge
-                                variant="success"
-                                size="sm"
-                                className="font-bold uppercase tracking-wider bg-[#B57EDC]/10 text-[#B57EDC] border border-[#B57EDC]/20"
-                              >
-                                Save 15% Annually
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* 3. Beauty Bucks Box */}
-                        <div 
-                          className={`rounded-2xl p-5 mb-8 text-center flex flex-col items-center justify-center ${
-                            tier.name === 'Transform'
-                              ? "bg-white/5 border border-white/10"
-                              : "bg-[#F4EEFB]/50 border border-[#B57EDC]/10"
-                          }`}
-                        >
-                          <div 
-                            className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-                              tier.name === 'Transform'
-                                ? "bg-white/10"
-                                : "bg-white shadow-sm"
-                            }`}
-                          >
-                            <Gift className={`w-6 h-6 ${tier.name === 'Transform' ? 'text-white' : 'text-[#B57EDC]'}`} />
-                          </div>
-                          <p className={`font-bold uppercase tracking-widest text-[10px] mb-1 ${
-                            tier.name === 'Transform' ? "text-gray-400" : "text-[#B57EDC]"
-                          }`}>
-                            Beauty Bucks
-                          </p>
-                          <p className={`font-black text-2xl mb-1 ${
-                            tier.name === 'Transform' ? "text-white" : "text-[#1F2937]"
-                          }`}>
-                            {formatCurrency(tier.monthlyCredits).replace(/\.00$/, '')}
-                          </p>
-                          <p className={`text-xs font-medium ${
-                            tier.name === 'Transform' ? "text-gray-400" : "text-[#6B7280]"
-                          }`}>
-                            Monthly Credit
-                          </p>
-                        </div>
-
-                        {/* 4. Features List */}
-                        <ul className="space-y-4 mb-8 flex-grow">
-                          {[
-                            { 
-                              text: `Botox: ${formatCurrency(tier.toxinDiscountBotox).replace(/\.00$/, '')}/unit`, 
-                              highlight: tier.name === 'Evolve' ? "Best Value" : `Reg. $15`,
-                              icon: CheckCircle2
-                            },
-                            { 
-                              text: `${tier.fillerDiscountPercent}% Off All Skincare & Fillers`,
-                              icon: CheckCircle2
-                            },
-                            ...(tier.name === 'Core' ? [
-                              { text: "Priority Booking Window", icon: CheckCircle2 },
-                              { text: "Monthly Skin Analysis", icon: CheckCircle2 }
-                            ] : []),
-                            ...(tier.name === 'Evolve' ? [
-                              { text: "Complimentary Monthly B12 Shot", icon: CheckCircle2 },
-                              { text: "Early Access to Seasonal Events", icon: CheckCircle2 },
-                              { text: "Dedicated Aesthetician", icon: CheckCircle2 }
-                            ] : []),
-                            ...(tier.name === 'Transform' ? [
-                              { text: "20% Off All Medical Services", icon: CheckCircle2 },
-                              { text: "Unlimited Hydrafacial Upgrades", icon: CheckCircle2 },
-                              { text: "VIP Concierge Support Line", icon: CheckCircle2 },
-                              { text: "Quarterly 3D Skin Mapping", icon: CheckCircle2 }
-                            ] : [])
-                          ].map((benefit, idx) => (
-                            <li
-                              key={idx}
-                              className={`flex items-center gap-3 text-sm ${
-                                tier.name === 'Transform' ? 'text-gray-300' : 'text-gray-700'
-                              }`}
-                            >
-                              <benefit.icon className={`w-4 h-4 flex-shrink-0 ${
-                                tier.name === 'Transform' ? 'text-[#B57EDC]' : 'text-[#B57EDC]'
-                              }`} />
-                              <span className="font-medium flex items-center flex-wrap gap-2">
-                                {benefit.text}
-                                {benefit.highlight && (
-                                  <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full ${
-                                    tier.name === 'Transform' 
-                                      ? 'bg-white/10 text-white' 
-                                      : 'bg-[#B57EDC]/10 text-[#B57EDC]'
-                                  }`}>
-                                    {benefit.highlight}
-                                  </span>
-                                )}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-
-                        {/* 5. CTA Button */}
-                        <div className="text-center mt-auto">
-                          <Button
-                            onClick={() => handleJoin(tier)}
-                            disabled={isCurrent}
-                            className={`w-full font-bold text-base py-3.5 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${
-                              isCurrent 
-                                ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
-                                : tier.name === 'Transform' 
-                                ? "bg-white text-[#1F2937] hover:bg-gray-50" 
-                                : tier.name === 'Evolve' 
-                                ? "bg-[#B57EDC] text-white hover:bg-[#9F6BCB]" 
-                                : "bg-[#F4EEFB] text-[#B57EDC] hover:bg-[#E9DDF7]"
-                            }`}
-                          >
-                          {isCurrent 
-                            ? "Current Plan" 
-                            : tier.name === 'Evolve'
-                              ? "Choose Evolve"
-                              : tier.name === 'Core'
-                                ? "Start Basic"
-                                : "Go Premium"
-                          }
-                          </Button>
-                          <div className="h-6 mt-2">
-                            {!isCurrent && tier.name === 'Evolve' && (
-                              <p className="text-xs text-[#B57EDC] font-semibold">
-                                Most Popular Choice
-                              </p>
-                            )}
-                            {!isCurrent && tier.name === 'Transform' && (
-                              <p className="text-xs text-gray-400 font-semibold">
-                                Ultimate Experience
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
+                      {isCurrent
+                        ? "Current Plan"
+                        : tier.name === "Core"
+                        ? "Get Started"
+                        : tier.name === "Evolve"
+                        ? "Choose Evolve"
+                        : "Go Premium"}
+                    </button>
                   </motion.div>
                 );
               })}
-            </motion.div>
+            </div>
           </div>
         </section>
 
