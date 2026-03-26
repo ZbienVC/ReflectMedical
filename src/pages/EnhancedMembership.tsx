@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { db } from "../firebase";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
@@ -8,7 +9,6 @@ import { formatCurrency } from "../lib/utils";
 import { addMonthlyCredits } from "../services/membershipService";
 import { membershipTiers, realStats, realReviews, practiceInfo } from "../data/practiceData";
 import { MEMBERSHIP_PLANS } from "../data/skinBank";
-import { realReviews } from "../data/practiceData";
 import {
   Sparkles,
   TrendingUp,
@@ -29,6 +29,7 @@ import { Button, Card, Badge, Section } from "../components/ui";
 
 const EnhancedMembership: React.FC = () => {
   const { profile, user } = useAuth();
+  const navigate = useNavigate();
   const [tiers, setTiers] = useState<any[]>(membershipTiers);
   const [loading, setLoading] = useState(false);
   const [isAnnual, setIsAnnual] = useState(true);
@@ -68,12 +69,9 @@ const EnhancedMembership: React.FC = () => {
   };
 
   const handleJoin = (tier: any) => {
-    const message = `I'm interested in joining the ${tier.name} membership tier at $${tier.monthlyPrice}/month. Can you help me get started?`;
-    const phoneUrl = `tel:${practiceInfo.phone}`;
-
-    if (window.confirm(`Ready to join the ${tier.name} membership?\n\nClick OK to call ${practiceInfo.phone} and speak with our membership team.`)) {
-      window.location.href = phoneUrl;
-    }
+    const tierId = (tier.id ?? tier.name ?? "evolve").toLowerCase();
+    const billing = isAnnual ? "annual" : "monthly";
+    navigate(`/checkout?tier=${tierId}&billing=${billing}`);
   };
 
   if (loading) {
