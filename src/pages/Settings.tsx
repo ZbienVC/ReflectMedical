@@ -3,16 +3,29 @@ import { motion } from "framer-motion";
 import { useAuth } from "../AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { logOut } from "../firebase";
-import { User, Sparkles, CreditCard, Bell, Shield, Save } from "lucide-react";
+import { linkWithPhoneNumber, RecaptchaVerifier, unlink } from "firebase/auth";
+import { auth } from "../firebase";
+import { User, Sparkles, CreditCard, Bell, Shield, Save, Phone, CheckCircle2 } from "lucide-react";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
 const Settings: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, signInWithPhone, verifyPhoneCode } = useAuth();
   const navigate = useNavigate();
   const [emailNotifs, setEmailNotifs] = useState(true);
   const [smsNotifs, setSmsNotifs] = useState(false);
   const [name, setName] = useState(profile?.name ?? "");
   const [phone, setPhone] = useState(profile?.phone ?? "");
+
+  // Phone linking state
+  const [linkPhone, setLinkPhone] = useState("");
+  const [linkStep, setLinkStep] = useState<"idle" | "verify">("idle");
+  const [linkCode, setLinkCode] = useState("");
+  const [linkConfirmation, setLinkConfirmation] = useState<any>(null);
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [linkError, setLinkError] = useState("");
+  const [linkSuccess, setLinkSuccess] = useState(false);
+
+  const isPhoneLinked = user?.providerData?.some(p => p.providerId === "phone");
 
   const membershipTier = profile?.membershipTierId
     ? profile.membershipTierId.charAt(0).toUpperCase() + profile.membershipTierId.slice(1)
@@ -21,6 +34,47 @@ const Settings: React.FC = () => {
   const handleSignOut = async () => {
     await logOut();
     navigate("/login");
+  };
+
+  const handleLinkPhone = async () => {
+    setLinkError("");
+    setLinkLoading(true);
+    try {
+      let formatted = linkPhone.replace(/\D/g, "");
+      if (formatted.length === 10) formatted = "+1" + formatted;
+      else if (!formatted.startsWith("+")) formatted = "+" + formatted;
+      const recaptchaVerifier = new RecaptchaVerifier(auth, "link-recaptcha", { size: "invisible" });
+      const confirmation = await linkWithPhoneNumber(auth.currentUser!, formatted, recaptchaVerifier);
+      setLinkConfirmation(confirmation);
+      setLinkStep("verify");
+    } catch (err: any) {
+      setLinkError("Failed to send code. Check the number and try again.");
+    } finally {
+      setLinkLoading(false);
+    }
+  };
+
+  const handleVerifyLink = async () => {
+    setLinkError("");
+    setLinkLoading(true);
+    try {
+      await linkConfirmation.confirm(linkCode);
+      setLinkSuccess(true);
+      setLinkStep("idle");
+    } catch (err: any) {
+      setLinkError("Invalid code. Please try again.");
+    } finally {
+      setLinkLoading(false);
+    }
+  };
+
+  const handleUnlinkPhone = async () => {
+    try {
+      await unlink(auth.currentUser!, "phone");
+      setLinkSuccess(false);
+    } catch (err) {
+      setLinkError("Failed to unlink phone number.");
+    }
   };
 
   return (
@@ -158,6 +212,82 @@ const Settings: React.FC = () => {
             </div>
             <ThemeToggle />
           </div>
+        </div>
+
+        {/* Phone Number Linking */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center">
+              <Phone className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Phone Number</h2>
+          </div>
+
+          {(isPhoneLinked || linkSuccess) ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="text-sm font-medium">Phone number linked — SMS sign-in enabled</span>
+              </div>
+              <button
+                onClick={handleUnlinkPhone}
+                className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors"
+              >
+                Unlink
+              </button>
+            </div>
+          ) : linkStep === "idle" ? (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Link your phone to sign in with SMS verification.</p>
+              {linkError && <p className="text-sm text-red-500">{linkError}</p>}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="tel"
+                    value={linkPhone}
+                    onChange={(e) => setLinkPhone(e.target.value)}
+                    placeholder="(201) 882-1050"
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl pl-9 pr-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  />
+                </div>
+                <button
+                  onClick={handleLinkPhone}
+                  disabled={linkLoading || !linkPhone}
+                  className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-semibold px-4 rounded-xl transition-colors"
+                >
+                  {linkLoading ? "Sending..." : "Link"}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400">US numbers auto-formatted. International? Include country code (+44...).</p>
+              <div id="link-recaptcha" />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Enter the 6-digit code sent to <span className="font-semibold text-gray-900 dark:text-white">{linkPhone}</span></p>
+              {linkError && <p className="text-sm text-red-500">{linkError}</p>}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={linkCode}
+                  onChange={(e) => setLinkCode(e.target.value)}
+                  placeholder="123456"
+                  maxLength={6}
+                  className="flex-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm text-center tracking-widest font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                />
+                <button
+                  onClick={handleVerifyLink}
+                  disabled={linkLoading || linkCode.length < 6}
+                  className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-semibold px-4 rounded-xl transition-colors"
+                >
+                  {linkLoading ? "Verifying..." : "Verify"}
+                </button>
+              </div>
+              <button onClick={() => { setLinkStep("idle"); setLinkCode(""); }} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                Use a different number
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Security */}
