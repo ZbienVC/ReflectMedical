@@ -18,9 +18,11 @@ export interface AppointmentData {
   email: string;
   phone: string;
   notes?: string;
+  addOns?: string[];
   status: "pending" | "confirmed" | "cancelled";
   createdAt?: Date;
   userId?: string;
+  reviewRequested?: boolean;
 }
 
 export async function createAppointment(data: Omit<AppointmentData, "id" | "createdAt">): Promise<string> {

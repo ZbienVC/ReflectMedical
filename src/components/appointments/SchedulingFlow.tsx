@@ -13,6 +13,9 @@ import {
   Check,
   CalendarPlus,
   RotateCcw,
+  Plus,
+  Minus,
+  Smartphone,
 } from "lucide-react";
 import { createAppointment, getBookedSlots } from "../../services/appointmentService";
 import { sendAppointmentNotification } from "../../services/emailService";
@@ -24,6 +27,13 @@ interface ServiceOption {
   name: string;
   description: string;
   icon: React.ReactNode;
+}
+
+interface AddOn {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
 }
 
 interface PatientInfo {
@@ -43,7 +53,7 @@ interface FormErrors {
 const SERVICES: ServiceOption[] = [
   {
     id: "botox",
-    name: "Botox / Neurotoxins",
+    name: "Botox Cosmetic",
     description: "Smooth fine lines and wrinkles with FDA-approved neurotoxins.",
     icon: <Syringe className="w-5 h-5" />,
   },
@@ -52,6 +62,12 @@ const SERVICES: ServiceOption[] = [
     name: "Dermal Fillers",
     description: "Restore volume and contour with hyaluronic acid fillers.",
     icon: <Droplets className="w-5 h-5" />,
+  },
+  {
+    id: "hydrafacial",
+    name: "HydraFacial",
+    description: "Deep cleanse, exfoliate and hydrate for luminous skin.",
+    icon: <Sparkles className="w-5 h-5" />,
   },
   {
     id: "peel",
@@ -85,6 +101,27 @@ const SERVICES: ServiceOption[] = [
   },
 ];
 
+const ADDONS: Record<string, AddOn[]> = {
+  "Botox Cosmetic": [
+    { id: "lip-flip", name: "Lip Flip", price: 80, description: "Add a subtle lip flip for a natural pout" },
+    { id: "neck-bands", name: "Neck Bands (Platysma)", price: 120, description: "Smooth vertical neck bands" },
+    { id: "brow-lift", name: "Brow Lift Enhancement", price: 60, description: "Extra units for a subtle brow lift" },
+  ],
+  "Dermal Fillers": [
+    { id: "lip-hydration", name: "Lip Hydration Boost", price: 50, description: "Add hyaluronic acid lip hydration" },
+    { id: "under-eye", name: "Under-Eye Refresh", price: 100, description: "Brighten under-eye hollows" },
+  ],
+  "HydraFacial": [
+    { id: "led-therapy", name: "LED Light Therapy", price: 35, description: "Boost results with red/blue LED" },
+    { id: "booster-serum", name: "Brightening Booster Serum", price: 45, description: "Targeted vitamin C infusion" },
+    { id: "lymphatic", name: "Lymphatic Drainage", price: 40, description: "Reduce puffiness and boost circulation" },
+  ],
+  "Chemical Peel": [
+    { id: "eye-treatment", name: "Eye Area Treatment", price: 30, description: "Extend peel to the delicate eye area" },
+    { id: "neck-decollete", name: "Neck & Décolleté", price: 50, description: "Extend treatment to neck and chest" },
+  ],
+};
+
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
@@ -93,12 +130,11 @@ const MONTHS = [
 const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function getSlotsForDay(dayOfWeek: number): string[] {
-  // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
-  let start = 9 * 60; // 9:00 AM in minutes
+  let start = 9 * 60;
   let end: number;
-  if (dayOfWeek === 1 || dayOfWeek === 5) end = 19 * 60; // 7:00 PM
-  else if (dayOfWeek === 2) end = 14 * 60; // 2:00 PM
-  else if (dayOfWeek === 3 || dayOfWeek === 4) end = 17 * 60; // 5:00 PM
+  if (dayOfWeek === 1 || dayOfWeek === 5) end = 19 * 60;
+  else if (dayOfWeek === 2) end = 14 * 60;
+  else if (dayOfWeek === 3 || dayOfWeek === 4) end = 17 * 60;
   else return [];
 
   const slots: string[] = [];
@@ -144,7 +180,7 @@ function googleCalendarUrl(service: string, date: string, time: string) {
 
 // ─── Step Progress Indicator ─────────────────────────────────────────────────
 const StepPills: React.FC<{ current: number; total: number }> = ({ current, total }) => (
-  <div className="flex items-center gap-2 mb-8">
+  <div className="flex items-center gap-2 mb-8 flex-wrap">
     {Array.from({ length: total }).map((_, i) => (
       <div
         key={i}
@@ -179,6 +215,7 @@ const SchedulingFlow: React.FC = () => {
 
   // Selections
   const [selectedService, setSelectedService] = useState<ServiceOption | null>(null);
+  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [patientInfo, setPatientInfo] = useState<PatientInfo>({ name: "", email: "", phone: "", notes: "" });
@@ -213,6 +250,12 @@ const SchedulingFlow: React.FC = () => {
     setStep(next);
   }, [step]);
 
+  const toggleAddOn = (id: string) => {
+    setSelectedAddOns(prev =>
+      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+    );
+  };
+
   // ── Step 1: Service ───────────────────────────────────────────────────────
   const renderStep1 = () => (
     <div>
@@ -224,7 +267,10 @@ const SchedulingFlow: React.FC = () => {
           return (
             <button
               key={svc.id}
-              onClick={() => setSelectedService(svc)}
+              onClick={() => {
+                setSelectedService(svc);
+                setSelectedAddOns([]);
+              }}
               className={`text-left rounded-2xl border p-4 transition-all ${
                 selected
                   ? "border-violet-500 bg-violet-50 shadow-sm"
@@ -243,7 +289,11 @@ const SchedulingFlow: React.FC = () => {
       <div className="mt-6 flex justify-end">
         <button
           disabled={!selectedService}
-          onClick={() => go(2)}
+          onClick={() => {
+            // Skip add-ons step if no add-ons available for this service
+            const addons = selectedService ? ADDONS[selectedService.name] : null;
+            go(addons && addons.length > 0 ? 2 : 3);
+          }}
           className="bg-violet-600 hover:bg-violet-700 disabled:opacity-40 text-white rounded-xl px-6 py-2.5 font-semibold text-sm transition-colors"
         >
           Continue
@@ -252,8 +302,86 @@ const SchedulingFlow: React.FC = () => {
     </div>
   );
 
-  // ── Step 2: Calendar ──────────────────────────────────────────────────────
+  // ── Step 2: Add-Ons ───────────────────────────────────────────────────────
   const renderStep2 = () => {
+    const addons = selectedService ? (ADDONS[selectedService.name] || []) : [];
+
+    return (
+      <div>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">Enhance Your Visit</h2>
+        <p className="text-gray-500 text-sm mb-6">Add complementary treatments to maximize your results.</p>
+
+        {addons.length === 0 ? (
+          <p className="text-gray-500 text-sm">No add-ons available for this service.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+            {addons.map((addon) => {
+              const isSelected = selectedAddOns.includes(addon.id);
+              return (
+                <button
+                  key={addon.id}
+                  onClick={() => toggleAddOn(addon.id)}
+                  className={`text-left rounded-2xl border p-4 transition-all relative ${
+                    isSelected
+                      ? "border-violet-500 bg-violet-50 shadow-sm"
+                      : "border-gray-200 bg-white hover:border-violet-300"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <p className={`font-semibold text-sm ${isSelected ? "text-violet-700" : "text-gray-900"}`}>
+                        {addon.name}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5 leading-snug">{addon.description}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5">
+                      <span className={`text-sm font-bold ${isSelected ? "text-violet-600" : "text-gray-700"}`}>
+                        +${addon.price}
+                      </span>
+                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                        isSelected ? "bg-violet-600 border-violet-600" : "border-gray-300"
+                      }`}>
+                        {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {selectedAddOns.length > 0 && (
+          <div className="mt-3 p-3 bg-violet-50 rounded-xl border border-violet-200 text-sm text-violet-700 font-medium">
+            {selectedAddOns.length} add-on{selectedAddOns.length > 1 ? "s" : ""} selected
+          </div>
+        )}
+
+        <div className="mt-6 flex justify-between">
+          <button onClick={() => go(1)} className="text-gray-500 hover:text-gray-700 text-sm font-medium flex items-center gap-1">
+            <ChevronLeft className="w-4 h-4" /> Back
+          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setSelectedAddOns([]); go(3); }}
+              className="text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors"
+            >
+              Skip
+            </button>
+            <button
+              onClick={() => go(3)}
+              className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-6 py-2.5 font-semibold text-sm transition-colors"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Step 3: Calendar ──────────────────────────────────────────────────────
+  const renderStep3 = () => {
     const firstDow = new Date(calYear, calMonth, 1).getDay();
     const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
     const todayKey = toDateKey(now.getFullYear(), now.getMonth(), now.getDate());
@@ -333,12 +461,18 @@ const SchedulingFlow: React.FC = () => {
         </p>
 
         <div className="mt-6 flex justify-between">
-          <button onClick={() => go(1)} className="text-gray-500 hover:text-gray-700 text-sm font-medium flex items-center gap-1">
+          <button
+            onClick={() => {
+              const addons = selectedService ? ADDONS[selectedService.name] : null;
+              go(addons && addons.length > 0 ? 2 : 1);
+            }}
+            className="text-gray-500 hover:text-gray-700 text-sm font-medium flex items-center gap-1"
+          >
             <ChevronLeft className="w-4 h-4" /> Back
           </button>
           <button
             disabled={!selectedDate}
-            onClick={() => go(3)}
+            onClick={() => go(4)}
             className="bg-violet-600 hover:bg-violet-700 disabled:opacity-40 text-white rounded-xl px-6 py-2.5 font-semibold text-sm transition-colors"
           >
             Continue
@@ -348,8 +482,8 @@ const SchedulingFlow: React.FC = () => {
     );
   };
 
-  // ── Step 3: Time Slots ────────────────────────────────────────────────────
-  const renderStep3 = () => {
+  // ── Step 4: Time Slots ────────────────────────────────────────────────────
+  const renderStep4 = () => {
     if (!selectedDate) return null;
     const [y, m, d] = selectedDate.split("-").map(Number);
     const dow = new Date(y, m - 1, d).getDay();
@@ -374,7 +508,6 @@ const SchedulingFlow: React.FC = () => {
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {allSlots.map((slot) => {
               const isBooked = bookedSlots.includes(slot);
-              // check if past for today
               const [timePart, ampm] = slot.split(" ");
               const [hRaw, min] = timePart.split(":").map(Number);
               let h = hRaw;
@@ -408,12 +541,12 @@ const SchedulingFlow: React.FC = () => {
         )}
 
         <div className="mt-6 flex justify-between">
-          <button onClick={() => go(2)} className="text-gray-500 hover:text-gray-700 text-sm font-medium flex items-center gap-1">
+          <button onClick={() => go(3)} className="text-gray-500 hover:text-gray-700 text-sm font-medium flex items-center gap-1">
             <ChevronLeft className="w-4 h-4" /> Back
           </button>
           <button
             disabled={!selectedTime}
-            onClick={() => go(4)}
+            onClick={() => go(5)}
             className="bg-violet-600 hover:bg-violet-700 disabled:opacity-40 text-white rounded-xl px-6 py-2.5 font-semibold text-sm transition-colors"
           >
             Continue
@@ -423,7 +556,7 @@ const SchedulingFlow: React.FC = () => {
     );
   };
 
-  // ── Step 4: Patient Info ──────────────────────────────────────────────────
+  // ── Step 5: Patient Info ──────────────────────────────────────────────────
   const validate = (): boolean => {
     const errors: FormErrors = {};
     if (!patientInfo.name.trim()) errors.name = "Full name is required.";
@@ -448,12 +581,12 @@ const SchedulingFlow: React.FC = () => {
         email: patientInfo.email,
         phone: patientInfo.phone,
         notes: patientInfo.notes || undefined,
+        addOns: selectedAddOns,
         status: "pending" as const,
         userId: user?.uid || undefined,
       };
       const id = await createAppointment(appointmentPayload);
       setConfirmedId(id);
-      // Non-blocking email
       sendAppointmentNotification({
         patientName: patientInfo.name,
         service: selectedService.name,
@@ -464,7 +597,7 @@ const SchedulingFlow: React.FC = () => {
         notes: patientInfo.notes || undefined,
       });
       setDirection(1);
-      setStep(5);
+      setStep(6);
     } catch {
       setSubmitError("Something went wrong. Please try again or call us at (201) 882-1050.");
     } finally {
@@ -472,7 +605,14 @@ const SchedulingFlow: React.FC = () => {
     }
   };
 
-  const renderStep4 = () => (
+  // Get add-on details for selected add-ons
+  const getSelectedAddOnDetails = (): AddOn[] => {
+    if (!selectedService) return [];
+    const addons = ADDONS[selectedService.name] || [];
+    return addons.filter(a => selectedAddOns.includes(a.id));
+  };
+
+  const renderStep5 = () => (
     <div>
       <h2 className="text-xl font-bold text-gray-900 mb-1">Your Information</h2>
       <p className="text-gray-500 text-sm mb-6">We'll use this to confirm your appointment.</p>
@@ -527,12 +667,37 @@ const SchedulingFlow: React.FC = () => {
         </div>
       </div>
 
+      {/* Order Summary */}
+      {(selectedService || selectedAddOns.length > 0) && (
+        <div className="mt-5 p-4 bg-gray-50 rounded-2xl border border-gray-200">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Booking Summary</p>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">{selectedService?.name}</span>
+              <span className="text-gray-400 text-xs">Service</span>
+            </div>
+            {getSelectedAddOnDetails().map(addon => (
+              <div key={addon.id} className="flex justify-between text-sm">
+                <span className="text-gray-600">+ {addon.name}</span>
+                <span className="text-violet-600 font-medium">+${addon.price}</span>
+              </div>
+            ))}
+            {selectedAddOns.length > 0 && (
+              <div className="pt-2 mt-2 border-t border-gray-200 flex justify-between text-sm font-semibold">
+                <span className="text-gray-700">Add-ons Total</span>
+                <span className="text-violet-700">+${getSelectedAddOnDetails().reduce((s, a) => s + a.price, 0)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {submitError && (
         <p className="mt-4 text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">{submitError}</p>
       )}
 
       <div className="mt-6 flex justify-between">
-        <button onClick={() => go(3)} className="text-gray-500 hover:text-gray-700 text-sm font-medium flex items-center gap-1">
+        <button onClick={() => go(4)} className="text-gray-500 hover:text-gray-700 text-sm font-medium flex items-center gap-1">
           <ChevronLeft className="w-4 h-4" /> Back
         </button>
         <button
@@ -553,11 +718,12 @@ const SchedulingFlow: React.FC = () => {
     </div>
   );
 
-  // ── Step 5: Confirmation ──────────────────────────────────────────────────
+  // ── Step 6: Confirmation ──────────────────────────────────────────────────
   const reset = () => {
     setStep(1);
     setDirection(1);
     setSelectedService(null);
+    setSelectedAddOns([]);
     setSelectedDate(null);
     setSelectedTime(null);
     setPatientInfo({ name: "", email: "", phone: "", notes: "" });
@@ -566,10 +732,11 @@ const SchedulingFlow: React.FC = () => {
     setSubmitError(null);
   };
 
-  const renderStep5 = () => {
+  const renderStep6 = () => {
     const gcUrl = selectedService && selectedDate && selectedTime
       ? googleCalendarUrl(selectedService.name, selectedDate, selectedTime)
       : "#";
+    const addOnDetails = getSelectedAddOnDetails();
 
     return (
       <div className="text-center py-4">
@@ -587,11 +754,28 @@ const SchedulingFlow: React.FC = () => {
         <p className="text-gray-500 text-sm mb-6">The office will confirm your appointment shortly.</p>
 
         {/* Summary */}
-        <div className="bg-gray-50 rounded-2xl border border-gray-200 p-5 text-left space-y-3 mb-6">
+        <div className="bg-gray-50 rounded-2xl border border-gray-200 p-5 text-left space-y-3 mb-5">
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Service</span>
             <span className="font-semibold text-gray-900">{selectedService?.name}</span>
           </div>
+          {addOnDetails.length > 0 && (
+            <div className="text-sm">
+              <span className="text-gray-500 block mb-1">Add-ons</span>
+              <div className="space-y-1">
+                {addOnDetails.map(a => (
+                  <div key={a.id} className="flex justify-between">
+                    <span className="text-gray-700 text-xs">+ {a.name}</span>
+                    <span className="text-violet-600 text-xs font-medium">+${a.price}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between pt-1 border-t border-gray-200 mt-1">
+                  <span className="text-gray-600 text-xs font-semibold">Add-ons total</span>
+                  <span className="text-violet-700 text-xs font-bold">+${addOnDetails.reduce((s, a) => s + a.price, 0)}</span>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Date</span>
             <span className="font-semibold text-gray-900">{selectedDate ? formatDisplayDate(selectedDate) : ""}</span>
@@ -610,6 +794,28 @@ const SchedulingFlow: React.FC = () => {
               <span className="font-mono text-xs text-gray-400">{confirmedId.slice(0, 10).toUpperCase()}</span>
             </div>
           )}
+        </div>
+
+        {/* SMS Confirmation UI (Feature 11) */}
+        <div className="mb-6 text-left">
+          <div className="flex items-center gap-2 mb-3">
+            <Smartphone className="w-4 h-4 text-gray-400" />
+            <p className="text-sm text-gray-500">
+              You'll receive a text confirmation shortly at{" "}
+              <span className="font-semibold text-gray-700">{patientInfo.phone || "your phone"}</span>
+            </p>
+          </div>
+          {/* iMessage-style bubble */}
+          <div className="bg-gray-100 rounded-2xl rounded-tl-sm p-4 max-w-xs">
+            <p className="text-xs font-semibold text-gray-500 mb-1">Reflect Medical</p>
+            <p className="text-sm text-gray-800 leading-relaxed">
+              Hi {patientInfo.name || "there"}! Your{" "}
+              <span className="font-semibold">{selectedService?.name}</span> is confirmed for{" "}
+              <span className="font-semibold">{selectedDate ? formatDisplayDate(selectedDate) : ""}</span> at{" "}
+              <span className="font-semibold">{selectedTime}</span>. Reply C to confirm or R to reschedule. Questions? Call (201) 882-1050
+            </p>
+            <p className="text-xs text-gray-400 mt-1.5 text-right">Delivered</p>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -634,11 +840,16 @@ const SchedulingFlow: React.FC = () => {
     );
   };
 
-  const stepContent = [renderStep1, renderStep2, renderStep3, renderStep4, renderStep5];
+  // Steps: 1=service, 2=addons, 3=calendar, 4=timeslots, 5=patient info, 6=confirmation
+  const stepContent = [renderStep1, renderStep2, renderStep3, renderStep4, renderStep5, renderStep6];
+
+  // Determine which step number to show for pill (skip add-ons pill when no addons available)
+  const hasAddOns = selectedService ? (ADDONS[selectedService.name]?.length ?? 0) > 0 : false;
+  const totalSteps = hasAddOns ? 6 : 5;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-      {step < 5 && <StepPills current={step} total={5} />}
+      {step < 6 && <StepPills current={step} total={totalSteps} />}
 
       <AnimatePresence mode="wait" custom={direction}>
         <motion.div

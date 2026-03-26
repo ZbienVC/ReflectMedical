@@ -10,6 +10,7 @@ import {
   updateDoc,
   setDoc,
   serverTimestamp,
+  getDoc,
 } from "firebase/firestore";
 import {
   Users,
@@ -24,9 +25,11 @@ import {
   Database,
   TrendingUp,
   Sparkles,
+  ClipboardList,
 } from "lucide-react";
 import { AppointmentData } from "../services/appointmentService";
 import { GiftCardData, generateGiftCardCode } from "../services/giftCardService";
+import { sendAppointmentReminder } from "../services/notificationService";
 import { INITIAL_MEMBERSHIP_TIERS, INITIAL_SERVICES } from "../constants";
 import { writeBatch } from "firebase/firestore";
 import { formatCurrency } from "../lib/utils";
@@ -140,6 +143,23 @@ function AppointmentsTab({
 }) {
   const [filter, setFilter] = useState<ApptFilter>("all");
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
+  const [reminderSent, setReminderSent] = useState<string | null>(null);
+
+  const handleSendReminder = async (a: AppointmentData) => {
+    try {
+      await sendAppointmentReminder({
+        name: a.name,
+        email: a.email,
+        service: a.service,
+        date: a.date,
+        time: a.time,
+      });
+      setReminderSent(a.id!);
+      setTimeout(() => setReminderSent(null), 3000);
+    } catch {
+      // silently ignore
+    }
+  };
 
   const filtered = appointments.filter((a) => {
     if (filter === "today") return isToday(a.date);
@@ -205,7 +225,7 @@ function AppointmentsTab({
                     <div>{a.phone}</div>
                     <div className="text-xs text-gray-400">{a.email}</div>
                   </td>
-                  <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate">{a.notes || "—"}</td>
+                  <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate">{a.notes || "-"}</td>
                   <td className="px-4 py-3">{statusBadge(a.status)}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -215,6 +235,14 @@ function AppointmentsTab({
                           className="px-2.5 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-200 transition-colors"
                         >
                           Confirm
+                        </button>
+                      )}
+                      {a.status === "confirmed" && (
+                        <button
+                          onClick={() => handleSendReminder(a)}
+                          className="px-2.5 py-1 bg-violet-100 text-violet-700 rounded-lg text-xs font-semibold hover:bg-violet-200 transition-colors"
+                        >
+                          {reminderSent === a.id ? "Sent ✓" : "Send Reminder"}
                         </button>
                       )}
                       {a.status !== "cancelled" && (
@@ -262,10 +290,84 @@ function AppointmentsTab({
 }
 
 // ---- MEMBERS ----
+interface IntakeFormSnapshot {
+  fullName?: string;
+  dob?: string;
+  phone?: string;
+  email?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  medications?: string;
+  allergies?: string;
+  previousTreatments?: string[];
+  medicalConditions?: string[];
+  pregnantOrBreastfeeding?: string;
+  reasonForVisit?: string;
+  areasOfConcern?: string[];
+  desiredOutcome?: string;
+  signature?: string;
+  signatureDate?: string;
+}
+
+function IntakeModal({ userId, onClose }: { userId: string; onClose: () => void }) {
+  const [data, setData] = useState<IntakeFormSnapshot | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const snap = await getDoc(doc(db, "intakeForms", userId));
+      setData(snap.exists() ? (snap.data() as IntakeFormSnapshot) : null);
+      setLoading(false);
+    };
+    load();
+  }, [userId]);
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-violet-600" />
+            <h3 className="text-lg font-bold text-gray-900">Patient Intake Form</h3>
+          </div>
+          <button onClick={onClose}><X className="w-5 h-5 text-gray-400 hover:text-gray-700" /></button>
+        </div>
+        <div className="p-6">
+          {loading ? (
+            <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-4 bg-gray-100 rounded animate-pulse" />)}</div>
+          ) : !data ? (
+            <p className="text-gray-500 text-sm">No intake form submitted yet.</p>
+          ) : (
+            <div className="space-y-4 text-sm">
+              {[
+                ["Full Name", data.fullName], ["Date of Birth", data.dob], ["Phone", data.phone], ["Email", data.email],
+                ["Emergency Contact", data.emergencyContactName], ["Emergency Phone", data.emergencyContactPhone],
+                ["Medications", data.medications], ["Allergies", data.allergies],
+                ["Previous Treatments", data.previousTreatments?.join(", ")],
+                ["Medical Conditions", data.medicalConditions?.join(", ")],
+                ["Pregnant/Breastfeeding", data.pregnantOrBreastfeeding],
+                ["Reason for Visit", data.reasonForVisit],
+                ["Areas of Concern", data.areasOfConcern?.join(", ")],
+                ["Desired Outcome", data.desiredOutcome],
+                ["Signature", data.signature], ["Signed On", data.signatureDate],
+              ].map(([label, value]) => value ? (
+                <div key={label as string} className="flex gap-3">
+                  <span className="text-gray-400 w-40 flex-shrink-0">{label}</span>
+                  <span className="text-gray-900 font-medium">{value as string}</span>
+                </div>
+              ) : null)}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 function MembersTab({ members, loading }: { members: AdminUser[]; loading: boolean; }) {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [updatingTier, setUpdatingTier] = useState<string | null>(null);
+  const [viewIntakeUid, setViewIntakeUid] = useState<string | null>(null);
 
   const filtered = members.filter(
     (m) =>
@@ -289,7 +391,7 @@ function MembersTab({ members, loading }: { members: AdminUser[]; loading: boole
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or email…"
+          placeholder="Search by name or email..."
           className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300"
         />
       </div>
@@ -305,6 +407,7 @@ function MembersTab({ members, loading }: { members: AdminUser[]; loading: boole
               <th className="px-4 py-3">Joined</th>
               <th className="px-4 py-3">Beauty Bank</th>
               <th className="px-4 py-3">Update Tier</th>
+              <th className="px-4 py-3">Intake</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -331,13 +434,13 @@ function MembersTab({ members, loading }: { members: AdminUser[]; loading: boole
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-600">{m.email}</td>
-                    <td className="px-4 py-3 text-gray-600">{m.phone || "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">{m.phone || "-"}</td>
                     <td className="px-4 py-3">
                       <span className="capitalize px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold">
                         {m.membershipTierId || "none"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{m.joinDate ? new Date(m.joinDate).toLocaleDateString() : "—"}</td>
+                    <td className="px-4 py-3 text-gray-600">{m.joinDate ? new Date(m.joinDate).toLocaleDateString() : "-"}</td>
                     <td className="px-4 py-3 font-semibold text-gray-900">${m.beautyBucksBalance?.toLocaleString() || 0}</td>
                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       <select
@@ -346,11 +449,19 @@ function MembersTab({ members, loading }: { members: AdminUser[]; loading: boole
                         disabled={updatingTier === m.uid}
                         className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-violet-300 capitalize"
                       >
-                        <option value="">— select —</option>
+                        <option value="">- select -</option>
                         {tierOptions.map((t) => (
                           <option key={t} value={t} className="capitalize">{t}</option>
                         ))}
                       </select>
+                    </td>
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => setViewIntakeUid(m.uid)}
+                        className="flex items-center gap-1 px-2.5 py-1 bg-violet-100 text-violet-700 rounded-lg text-xs font-semibold hover:bg-violet-200 transition-colors"
+                      >
+                        <ClipboardList className="w-3 h-3" /> View Intake
+                      </button>
                     </td>
                   </tr>
                   {expanded === m.uid && (
@@ -366,6 +477,7 @@ function MembersTab({ members, loading }: { members: AdminUser[]; loading: boole
           </tbody>
         </table>
       </div>
+      {viewIntakeUid && <IntakeModal userId={viewIntakeUid} onClose={() => setViewIntakeUid(null)} />}
     </div>
   );
 }
@@ -384,7 +496,7 @@ function MemberAppointments({ userId }: { userId: string }) {
     fetch();
   }, [userId]);
 
-  if (loading) return <div className="text-xs text-gray-400 animate-pulse">Loading appointments…</div>;
+  if (loading) return <div className="text-xs text-gray-400 animate-pulse">Loading appointments...</div>;
   if (appts.length === 0) return <p className="text-sm text-gray-400">No appointments found.</p>;
 
   return (
@@ -474,8 +586,8 @@ function GiftCardsTab({ giftCards, loading, onRefresh }: { giftCards: GiftCardDa
                     {gc.createdAt
                       ? typeof gc.createdAt === "string"
                         ? new Date(gc.createdAt).toLocaleDateString()
-                        : (gc.createdAt as { toDate?: () => Date }).toDate?.().toLocaleDateString() ?? "—"
-                      : "—"}
+                        : (gc.createdAt as { toDate?: () => Date }).toDate?.().toLocaleDateString() ?? "-"
+                      : "-"}
                   </td>
                 </tr>
               ))
@@ -524,7 +636,7 @@ function GiftCardsTab({ giftCards, loading, onRefresh }: { giftCards: GiftCardDa
                 disabled={creating || !form.recipientName}
                 className="w-full py-2.5 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 disabled:opacity-50 mt-2"
               >
-                {creating ? "Creating…" : "Create Gift Card"}
+                {creating ? "Creating..." : "Create Gift Card"}
               </button>
             </div>
           </div>

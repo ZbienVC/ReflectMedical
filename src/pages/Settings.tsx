@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "../AuthContext";
 import { useNavigate, Link } from "react-router-dom";
@@ -7,6 +7,7 @@ import { linkWithPhoneNumber, RecaptchaVerifier, unlink } from "firebase/auth";
 import { auth } from "../firebase";
 import { User, Sparkles, CreditCard, Bell, Shield, Save, Phone, CheckCircle2 } from "lucide-react";
 import ThemeToggle from "../components/ui/ThemeToggle";
+import { getMembershipStatus, pauseMembership, resumeMembership } from "../services/membershipService";
 
 const Settings: React.FC = () => {
   const { user, profile, signInWithPhone, verifyPhoneCode } = useAuth();
@@ -26,6 +27,42 @@ const Settings: React.FC = () => {
   const [linkSuccess, setLinkSuccess] = useState(false);
 
   const isPhoneLinked = user?.providerData?.some(p => p.providerId === "phone");
+
+  // Membership pause state
+  const [membershipStatus, setMembershipStatus] = useState<"active" | "paused" | "inactive">("inactive");
+  const [pauseUntil, setPauseUntil] = useState<string | null>(null);
+  const [showPausePanel, setShowPausePanel] = useState(false);
+  const [selectedPauseMonths, setSelectedPauseMonths] = useState<number | null>(null);
+  const [pauseLoading, setPauseLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    getMembershipStatus(user.uid).then(setMembershipStatus);
+    // Load pauseUntil from profile
+    if ((profile as any)?.pauseUntil) setPauseUntil((profile as any).pauseUntil);
+  }, [user, profile]);
+
+  const handlePause = async () => {
+    if (!user || !selectedPauseMonths) return;
+    setPauseLoading(true);
+    await pauseMembership(user.uid, selectedPauseMonths);
+    setMembershipStatus("paused");
+    const d = new Date();
+    d.setMonth(d.getMonth() + selectedPauseMonths);
+    setPauseUntil(d.toISOString());
+    setShowPausePanel(false);
+    setSelectedPauseMonths(null);
+    setPauseLoading(false);
+  };
+
+  const handleResume = async () => {
+    if (!user) return;
+    setPauseLoading(true);
+    await resumeMembership(user.uid);
+    setMembershipStatus("active");
+    setPauseUntil(null);
+    setPauseLoading(false);
+  };
 
   const membershipTier = profile?.membershipTierId
     ? profile.membershipTierId.charAt(0).toUpperCase() + profile.membershipTierId.slice(1)
@@ -142,22 +179,93 @@ const Settings: React.FC = () => {
             </div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Membership</h2>
           </div>
-          <div className="flex items-center justify-between">
+
+          {membershipStatus === "inactive" ? (
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {membershipTier ? `${membershipTier} Plan` : "No active membership"}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {membershipTier ? "Active" : "Enroll to unlock exclusive savings"}
-              </p>
+              <p className="text-sm text-gray-500 mb-3">No active membership.</p>
+              <Link to="/membership" className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors">
+                View Plans
+              </Link>
             </div>
-            <Link
-              to="/membership"
-              className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
-            >
-              {membershipTier ? "Manage" : "Upgrade"}
-            </Link>
-          </div>
+          ) : membershipStatus === "paused" ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full">Paused</span>
+                {pauseUntil && (
+                  <span className="text-sm text-gray-500">until {new Date(pauseUntil).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
+                )}
+              </div>
+              <p className="text-xs text-gray-400">Your Beauty Bank credits are frozen during the pause. No charges are applied.</p>
+              <button
+                onClick={handleResume}
+                disabled={pauseLoading}
+                className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+              >
+                {pauseLoading ? "Resuming..." : "Resume Membership"}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {membershipTier ? `${membershipTier} Plan` : "Active"}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Active membership</p>
+                </div>
+                <Link
+                  to="/membership"
+                  className="bg-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+                >
+                  Manage
+                </Link>
+              </div>
+
+              {!showPausePanel ? (
+                <button
+                  onClick={() => setShowPausePanel(true)}
+                  className="border border-gray-200 hover:border-violet-300 text-gray-600 hover:text-violet-700 rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+                >
+                  Pause Membership
+                </button>
+              ) : (
+                <div className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200">
+                  <p className="text-sm font-semibold text-gray-900">Pause for how long?</p>
+                  <div className="flex gap-2">
+                    {[1, 2, 3].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => setSelectedPauseMonths(m)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                          selectedPauseMonths === m
+                            ? "bg-violet-600 text-white border-violet-600"
+                            : "bg-white text-gray-600 border-gray-200 hover:border-violet-400"
+                        }`}
+                      >
+                        {m} month{m > 1 ? "s" : ""}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-400">Your Beauty Bank credits freeze during the pause. No charges during pause.</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handlePause}
+                      disabled={!selectedPauseMonths || pauseLoading}
+                      className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+                    >
+                      {pauseLoading ? "Pausing..." : "Pause Membership"}
+                    </button>
+                    <button
+                      onClick={() => { setShowPausePanel(false); setSelectedPauseMonths(null); }}
+                      className="border border-gray-200 text-gray-600 hover:text-gray-800 rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Payment */}

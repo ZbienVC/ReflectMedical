@@ -190,3 +190,37 @@ export const processTransaction = async (
 
   return { id: txRef.id, ...transaction };
 };
+
+// ── Membership Pause / Resume ──────────────────────────────────────────────
+
+/** Pause membership for 1, 2, or 3 months */
+export async function pauseMembership(userId: string, months: number): Promise<void> {
+  const pauseUntil = new Date();
+  pauseUntil.setMonth(pauseUntil.getMonth() + months);
+  await updateDoc(doc(db, "users", userId), {
+    membershipStatus: "paused",
+    pauseUntil: pauseUntil.toISOString(),
+  });
+}
+
+/** Resume membership early */
+export async function resumeMembership(userId: string): Promise<void> {
+  await updateDoc(doc(db, "users", userId), {
+    membershipStatus: "active",
+    pauseUntil: null,
+  });
+}
+
+/** Get membership status */
+export async function getMembershipStatus(userId: string): Promise<"active" | "paused" | "inactive"> {
+  try {
+    const snap = await getDoc(doc(db, "users", userId));
+    if (!snap.exists()) return "inactive";
+    const data = snap.data() as UserProfile & { membershipStatus?: string; pauseUntil?: string };
+    if (!data.membershipTierId) return "inactive";
+    if (data.membershipStatus === "paused") return "paused";
+    return "active";
+  } catch {
+    return "inactive";
+  }
+}

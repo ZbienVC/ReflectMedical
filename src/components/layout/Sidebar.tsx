@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -13,7 +13,11 @@ import {
   Users,
   Sparkles,
   Award,
+  ClipboardList,
 } from "lucide-react";
+import { useAuth } from "../../AuthContext";
+import { db } from "../../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const navigationItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -27,6 +31,15 @@ const navigationItems = [
 export default function Sidebar() {
   const location = useLocation();
   const pathname = location.pathname;
+  const { user } = useAuth();
+  const [hasIntake, setHasIntake] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (!user) return;
+    getDoc(doc(db, "intakeForms", user.uid))
+      .then((snap) => setHasIntake(snap.exists()))
+      .catch(() => setHasIntake(true));
+  }, [user]);
 
   const isActive = (href: string) => pathname === href;
 
@@ -56,6 +69,23 @@ export default function Sidebar() {
               </motion.div>
             );
           })}
+
+          {!hasIntake && (
+            <motion.div whileHover={{ x: 2 }} transition={{ duration: 0.15 }}>
+              <Link
+                to="/intake"
+                className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                  isActive("/intake")
+                    ? "bg-purple-600/15 text-purple-400 border border-purple-500/20"
+                    : "text-violet-400 hover:bg-white/5 hover:text-violet-300 border border-violet-500/20"
+                }`}
+              >
+                <ClipboardList className="h-5 w-5 flex-shrink-0 text-violet-400 group-hover:text-violet-300 transition-colors" />
+                Intake Form
+                <span className="ml-auto w-2 h-2 rounded-full bg-violet-500" />
+              </Link>
+            </motion.div>
+          )}
         </div>
 
         <div className="my-6 border-t border-white/5" />
@@ -78,5 +108,6 @@ export default function Sidebar() {
     </aside>
   );
 }
+
 
 

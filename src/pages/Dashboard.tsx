@@ -8,10 +8,13 @@ import {
   Gift,
   Clock,
   CheckCircle,
+  ClipboardList,
 } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import { onBalanceChange, creditMonthlyBeautyBank, hasReceivedMonthlyCredit } from "../services/beautyBankService";
 import { getBookings } from "../services/treatmentService";
+import { db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 interface Transaction {
   id: string;
@@ -35,6 +38,7 @@ const Dashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activationBanner, setActivationBanner] = useState(false);
   const [creditBanner, setCreditBanner] = useState<number | null>(null);
+  const [hasIntake, setHasIntake] = useState<boolean | null>(null);
 
   // Handle ?membership=activated query param
   useEffect(() => {
@@ -71,6 +75,10 @@ const Dashboard: React.FC = () => {
   }, [user]);
 
   // Auto-credit Beauty Bank if active membership and not yet credited this month
+  useEffect(() => {
+    if (!user) return;
+    getDoc(doc(db, "intakeForms", user.uid)).then((snap) => setHasIntake(snap.exists())).catch(() => setHasIntake(false));
+  }, [user]);
   useEffect(() => {
     if (!user || !profile?.membershipTierId) return;
     const tierId = profile.membershipTierId.toLowerCase();
@@ -279,6 +287,31 @@ const Dashboard: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Intake Form CTA */}
+      {hasIntake === false && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-violet-50 border border-violet-200 rounded-2xl p-5 flex items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
+              <ClipboardList className="w-5 h-5 text-violet-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900 text-sm">Complete Your Patient Intake Form</p>
+              <p className="text-gray-500 text-xs mt-0.5">Required before your first visit — takes about 3 minutes.</p>
+            </div>
+          </div>
+          <Link
+            to="/intake"
+            className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors"
+          >
+            Start Now
+          </Link>
+        </motion.div>
+      )}
     </div>
   );
 };
