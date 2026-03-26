@@ -8,3 +8,4 @@ export { default as Catalog } from './Catalog';
 export { default as Checkout } from './Checkout';
 export { default as Admin } from './Admin';
 export { default as NotFound } from './NotFound';
+export { default as GiftCards } from './GiftCards';

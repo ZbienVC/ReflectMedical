@@ -14,6 +14,8 @@ import {
   LogOut,
   Menu,
   X,
+  Gift,
+  ShieldCheck,
 } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
 
@@ -21,7 +23,7 @@ interface AppLayoutProps {
   children: React.ReactNode;
 }
 
-const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password"];
+const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password", "/gift-cards"];
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const { user, profile } = useAuth();
@@ -41,8 +43,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { name: "Treatments", href: "/treatments", icon: Stethoscope },
     { name: "Referrals", href: "/referrals", icon: Users },
     { name: "Appointments", href: "/appointments", icon: Calendar },
+    { name: "Gift Cards", href: "/gift-cards", icon: Gift },
     { name: "Locations", href: "/locations", icon: MapPin },
     { name: "Settings", href: "/settings", icon: Settings },
+    ...(profile?.role === "admin" ? [{ name: "Admin", href: "/admin", icon: ShieldCheck }] : []),
   ];
 
   const handleSignOut = async () => {

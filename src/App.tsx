@@ -21,6 +21,8 @@ import Profile from "./pages/Profile";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AppLayout from "./components/layout/AppLayout";
 
+import GiftCards from "./pages/GiftCards";
+
 const PrivateRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly }) => {
   const { user, profile, loading } = useAuth();
 
@@ -42,6 +44,7 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/gift-cards" element={<GiftCards />} />
 
               {/* Root redirect */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

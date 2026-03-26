@@ -9,9 +9,11 @@ import {
   ChevronRight,
   Clock,
   Inbox,
+  Gift,
 } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import { onBalanceChange, getTransactionHistory, getBeautyBankHistory, BeautyBankTransaction } from "../services/beautyBankService";
+import { redeemGiftCard } from "../services/giftCardService";
 import { treatments } from "../data/treatments";
 import { formatCurrency } from "../data/bankingData";
 import { doc, getDoc } from "firebase/firestore";
@@ -63,6 +65,9 @@ const Credits: React.FC = () => {
   const [transactions, setTransactions] = useState<BeautyBankTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastCreditDate, setLastCreditDate] = useState<string | undefined>();
+  const [giftCode, setGiftCode] = useState("");
+  const [giftLoading, setGiftLoading] = useState(false);
+  const [giftMessage, setGiftMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -237,6 +242,50 @@ const Credits: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Gift Card Redemption */}
+      {user && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Gift className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Redeem a Gift Card</h2>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Have a gift card code? Redeem it here to add to your Beauty Bank balance.</p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={giftCode}
+              onChange={(e) => setGiftCode(e.target.value.toUpperCase())}
+              placeholder="REFLECT-XXXX-XXXX"
+              className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 font-mono text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+            <button
+              onClick={async () => {
+                if (!giftCode.trim()) return;
+                setGiftLoading(true);
+                setGiftMessage(null);
+                const result = await redeemGiftCard(giftCode.trim(), user.uid);
+                if (result.success) {
+                  setGiftMessage({ type: "success", text: `Gift card redeemed! $${result.amount} added to your Beauty Bank.` });
+                  setGiftCode("");
+                } else {
+                  setGiftMessage({ type: "error", text: result.error ?? "Invalid or already redeemed code." });
+                }
+                setGiftLoading(false);
+              }}
+              disabled={giftLoading || !giftCode.trim()}
+              className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-semibold text-sm transition-colors disabled:opacity-50"
+            >
+              {giftLoading ? "…" : "Redeem"}
+            </button>
+          </div>
+          {giftMessage && (
+            <p className={`text-sm mt-3 font-medium ${giftMessage.type === "success" ? "text-green-600" : "text-red-500"}`}>
+              {giftMessage.text}
+            </p>
+          )}
+        </div>
+      )}
     </motion.div>
   );
 };
