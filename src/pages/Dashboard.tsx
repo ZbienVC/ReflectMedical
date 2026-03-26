@@ -97,6 +97,13 @@ const Dashboard: React.FC = () => {
 
   const firstName = (profile?.name ?? user?.displayName ?? "there").split(" ")[0];
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
   const TIER_MAP: Record<string, string> = {
     silver: "Core", gold: "Evolve", platinum: "Transform",
     core: "Core", evolve: "Evolve", transform: "Transform"
@@ -114,7 +121,12 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 pb-12">
+    <motion.div
+      className="space-y-6 pb-12"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+    >
       {/* Activation Banner */}
       <AnimatePresence>
         {activationBanner && (
@@ -158,7 +170,7 @@ const Dashboard: React.FC = () => {
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Welcome back, {firstName} </h1>
+            <h1 className="text-2xl font-bold text-gray-900">{getGreeting()}, {firstName} </h1>
             <p className="text-gray-500 mt-1">
               You have <span className="font-semibold text-violet-600">${liveBalance.toLocaleString()}</span> in Beauty Bank available
             </p>
@@ -219,8 +231,11 @@ const Dashboard: React.FC = () => {
 
       {/* Activity Section */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 pt-6 pb-4">
+        <div className="px-6 pt-6 pb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+          <Link to="/appointments" className="text-violet-600 hover:text-violet-700 font-medium text-sm transition-colors">
+            View all
+          </Link>
         </div>
         {isLoading ? (
           <div className="p-6 space-y-3">
@@ -312,7 +327,7 @@ const Dashboard: React.FC = () => {
           </Link>
         </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

@@ -245,19 +245,19 @@ const Credits: React.FC = () => {
 
       {/* Gift Card Redemption */}
       {user && (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <div className="flex items-center gap-2 mb-4">
             <Gift className="w-5 h-5 text-violet-600 dark:text-violet-400" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Redeem a Gift Card</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Redeem a Gift Card</h2>
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Have a gift card code? Redeem it here to add to your Beauty Bank balance.</p>
+          <p className="text-sm text-gray-500 mb-4">Have a gift card code? Redeem it here to add to your Beauty Bank balance.</p>
           <div className="flex gap-2">
             <input
               type="text"
               value={giftCode}
               onChange={(e) => setGiftCode(e.target.value.toUpperCase())}
               placeholder="REFLECT-XXXX-XXXX"
-              className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 font-mono text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 font-mono text-sm bg-white text-gray-900"
             />
             <button
               onClick={async () => {

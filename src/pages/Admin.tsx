@@ -101,22 +101,18 @@ interface OverviewStats {
 
 function OverviewTab({ stats, loading }: { stats: OverviewStats; loading: boolean }) {
   const cards = [
-    { label: "Today's Appointments", value: stats.todayAppts, icon: Calendar, color: "violet" },
-    { label: "Total Members", value: stats.totalMembers, icon: Users, color: "blue" },
-    { label: "Beauty Bank Credits Issued", value: `$${stats.totalCredits.toLocaleString()}`, icon: Sparkles, color: "emerald" },
-    { label: "This Month's Bookings", value: stats.monthlyBookings, icon: TrendingUp, color: "orange" },
+    { label: "Today's Appointments", value: stats.todayAppts, icon: Calendar },
+    { label: "Total Members", value: stats.totalMembers, icon: Users },
+    { label: "Beauty Bank Credits Issued", value: `$${stats.totalCredits.toLocaleString()}`, icon: Sparkles },
+    { label: "This Month's Bookings", value: stats.monthlyBookings, icon: TrendingUp },
   ];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       {cards.map((c) => (
         <div key={c.label} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4
-            ${c.color === "violet" ? "bg-violet-100 text-violet-600" :
-              c.color === "blue" ? "bg-blue-100 text-blue-600" :
-              c.color === "emerald" ? "bg-emerald-100 text-emerald-600" :
-              "bg-orange-100 text-orange-600"}`}>
-            <c.icon className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center mb-4">
+            <c.icon className="w-5 h-5 text-violet-600" />
           </div>
           <p className="text-xs uppercase tracking-widest text-gray-400 font-semibold mb-1">{c.label}</p>
           {loading ? (
@@ -772,7 +768,7 @@ const Admin: React.FC = () => {
         </div>
         <button
           onClick={handleSeed}
-          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-xl hover:bg-violet-700 transition-colors"
         >
           <Database className="w-4 h-4" /> Seed Database
         </button>
