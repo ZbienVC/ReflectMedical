@@ -36,6 +36,10 @@ const EnhancedMembership: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(true);
   const [hoveredTier, setHoveredTier] = useState<string | null>(null);
 
+  useEffect(() => {
+    trackViewMembership();
+  }, []);
+
   const getTierFeatures = (tierId: "core" | "evolve" | "transform", beautyBankAmount: number): string[] => {
     if (tierId === "core") {
       return [
@@ -66,6 +70,7 @@ const EnhancedMembership: React.FC = () => {
   const handleJoin = (tier: any) => {
     const tierId = (tier.id ?? tier.name ?? "evolve").toLowerCase();
     const billing = isAnnual ? "annual" : "monthly";
+    trackBeginCheckout(tierId, tier.price ?? tier.monthlyPrice ?? 0);
     navigate(`/checkout?tier=${tierId}&billing=${billing}`);
   };
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../AuthContext";
+import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import {
   collection,
@@ -661,6 +662,7 @@ function GiftCardsTab({ giftCards, loading, onRefresh }: { giftCards: GiftCardDa
 // ---- MAIN ADMIN ----
 const Admin: React.FC = () => {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<TabKey>("overview");
   const [appointments, setAppointments] = useState<AppointmentData[]>([]);
   const [members, setMembers] = useState<AdminUser[]>([]);
@@ -790,6 +792,13 @@ const Admin: React.FC = () => {
             {t.label}
           </button>
         ))}
+        <button
+          onClick={() => navigate("/admin/analytics")}
+          className="flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap border-b-2 -mb-px border-transparent text-gray-500 hover:text-gray-800"
+        >
+          <TrendingUp className="w-4 h-4" />
+          Analytics
+        </button>
       </div>
 
       <div>

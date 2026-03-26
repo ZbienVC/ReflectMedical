@@ -20,6 +20,7 @@ import {
 import { createAppointment, getBookedSlots } from "../../services/appointmentService";
 import { sendAppointmentNotification } from "../../services/emailService";
 import { useAuth } from "../../AuthContext";
+import { trackBookAppointment } from "../../services/analyticsService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface ServiceOption {
@@ -587,6 +588,7 @@ const SchedulingFlow: React.FC = () => {
       };
       const id = await createAppointment(appointmentPayload);
       setConfirmedId(id);
+      trackBookAppointment(selectedService.name);
       sendAppointmentNotification({
         patientName: patientInfo.name,
         service: selectedService.name,

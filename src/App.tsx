@@ -24,6 +24,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import AppLayout from "./components/layout/AppLayout";
 
 import GiftCards from "./pages/GiftCards";
+import AdminAnalytics from "./pages/AdminAnalytics";
 import Landing from "./pages/Landing";
 
 const PrivateRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly }) => {
@@ -85,6 +86,7 @@ function AppInner() {
         <Route path="/intake" element={<PrivateRoute><IntakeForm /></PrivateRoute>} />
         <Route path="/packages" element={<PrivateRoute><Packages /></PrivateRoute>} />
         <Route path="/admin" element={<PrivateRoute adminOnly><Admin /></PrivateRoute>} />
+        <Route path="/admin/analytics" element={<PrivateRoute adminOnly><AdminAnalytics /></PrivateRoute>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
