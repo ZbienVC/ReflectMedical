@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion, useInView, animate } from "framer-motion";
+import { motion, useInView, animate, AnimatePresence } from "framer-motion";
 import {
   Star, MapPin, Phone, Clock, Instagram, Facebook, ChevronRight,
   Menu, X, CheckCircle, ArrowRight, Sparkles, Calendar, Gift, ChevronDown, ChevronUp,
@@ -27,6 +27,31 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
     </motion.div>
   );
 }
+
+// ─── Image sources ───────────────────────────────────────────────────────────
+const IMAGES = {
+  heroPortrait: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&q=80",
+  facialTreatment: "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=800&q=80",
+  injection: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80",
+  glowingSkin: "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800&q=80",
+  medSpa: "https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=800&q=80",
+  skincare: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=800&q=80",
+  laser: "https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=800&q=80",
+  portrait: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&q=80",
+  office: "https://images.unsplash.com/photo-1588776814546-1ffbb172d936?w=800&q=80",
+};
+
+const CATEGORY_IMAGES: Record<string, string> = {
+  "All": IMAGES.glowingSkin,
+  "Neurotoxins": IMAGES.injection,
+  "Fillers": IMAGES.portrait,
+  "Devices": IMAGES.laser,
+  "Chemical Peels": IMAGES.facialTreatment,
+  "Laser": IMAGES.laser,
+  "Wellness": IMAGES.medSpa,
+};
+
+const STEP_IMAGES = [IMAGES.skincare, IMAGES.glowingSkin, IMAGES.portrait];
 
 // ─── Treatment category tabs ─────────────────────────────────────────────────
 const CATEGORY_MAP: Record<string, string[]> = {
@@ -333,9 +358,9 @@ export default function Landing() {
           <div className="absolute top-40 right-40 w-64 h-64 bg-violet-200 rounded-full blur-2xl opacity-30" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-32 grid md:grid-cols-2 gap-12 items-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-32 flex flex-col lg:flex-row gap-12 items-center">
           {/* Left: copy */}
-          <div>
+          <div className="flex-1 min-w-0">
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -406,46 +431,71 @@ export default function Landing() {
             </motion.div>
           </div>
 
-          {/* Right: decorative card cluster */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="hidden md:flex flex-col gap-4 relative"
-          >
-            {/* Floating badge */}
-            <div className="absolute -top-6 -left-4 bg-violet-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg z-10 flex items-center gap-1.5 animate-bounce">
-              <Calendar className="w-3 h-3" /> Same Day Appointments Available
-            </div>
+          {/* Right: photo collage (desktop only) */}
+          <div className="hidden lg:block relative w-[45%] flex-shrink-0 h-[480px]">
+            {/* Main large photo */}
+            <motion.div
+              className="absolute top-8 right-0 w-72 h-80 rounded-3xl overflow-hidden shadow-2xl shadow-violet-200/40"
+              initial={{ opacity: 0, x: 40, rotate: 2 }}
+              animate={{ opacity: 1, x: 0, rotate: 2 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              whileHover={{ rotate: 0, scale: 1.02 }}
+            >
+              <img
+                src={IMAGES.glowingSkin}
+                alt="Glowing skin results"
+                className="w-full h-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+              />
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-violet-900/30 to-transparent" />
+            </motion.div>
 
-            {/* Stat cards */}
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { label: "Patients Served", to: 3250, suffix: "+" },
-                { label: "Google Reviews", to: 195, suffix: "+" },
-                { label: "Average Rating", to: 4.9, suffix: " ⭐" },
-                { label: "Years in Business", to: 8, suffix: "+" },
-              ].map((card) => (
-                <div
-                  key={card.label}
-                  className="bg-white rounded-2xl p-5 shadow-xl border border-gray-100"
-                >
-                  <p className="text-3xl font-black text-violet-600 mb-1">
-                    <AnimatedCounter to={card.to} suffix={card.suffix} />
-                  </p>
-                  <p className="text-sm text-gray-500">{card.label}</p>
-                </div>
-              ))}
-            </div>
+            {/* Secondary smaller photo */}
+            <motion.div
+              className="absolute top-48 left-0 w-52 h-60 rounded-3xl overflow-hidden shadow-xl shadow-pink-200/30"
+              initial={{ opacity: 0, x: -30, rotate: -3 }}
+              animate={{ opacity: 1, x: 0, rotate: -3 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              whileHover={{ rotate: 0, scale: 1.02 }}
+            >
+              <img
+                src={IMAGES.facialTreatment}
+                alt="Facial treatment"
+                className="w-full h-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+              />
+            </motion.div>
 
-            {/* Bottom decorative bar */}
-            <div className="bg-gradient-to-r from-violet-600 to-violet-800 rounded-2xl p-5 text-white">
-              <p className="font-semibold mb-1 flex items-center gap-2">
-                <Sparkles className="w-4 h-4" /> Beauty Bank Membership
-              </p>
-              <p className="text-sm text-violet-200">Auto-loaded credits every month. Use on any service.</p>
-            </div>
-          </motion.div>
+            {/* Floating badge card */}
+            <motion.div
+              className="absolute bottom-16 right-4 bg-white rounded-2xl shadow-lg p-3 flex items-center gap-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.9 }}
+            >
+              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                <span className="text-green-600 text-xs font-bold">✓</span>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-900">Natural Results</p>
+                <p className="text-xs text-gray-500">Board-certified care</p>
+              </div>
+            </motion.div>
+
+            {/* Star rating floating card */}
+            <motion.div
+              className="absolute top-4 left-8 bg-white rounded-2xl shadow-lg p-3"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.1 }}
+            >
+              <div className="flex gap-0.5 mb-1">
+                {[1,2,3,4,5].map(i => <span key={i} className="text-yellow-400 text-xs">★</span>)}
+              </div>
+              <p className="text-xs font-bold text-gray-900">4.9/5 Rating</p>
+              <p className="text-xs text-gray-500">195+ reviews</p>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -508,6 +558,15 @@ export default function Landing() {
                   <span className="absolute top-5 right-6 text-6xl font-black text-gray-100 select-none">
                     {card.step}
                   </span>
+                  {/* Step photo */}
+                  <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-4 ring-4 ring-violet-100">
+                    <img
+                      src={STEP_IMAGES[i]}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                    />
+                  </div>
                   <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center mb-4">
                     {card.icon}
                   </div>
@@ -551,7 +610,26 @@ export default function Landing() {
           </div>
 
           {/* Treatment cards */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="relative">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <img
+                  src={CATEGORY_IMAGES[activeTab] || IMAGES.glowingSkin}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                />
+                <div className="absolute inset-0 bg-white/92" />
+              </motion.div>
+            </AnimatePresence>
+            <div className="relative grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredServices.slice(0, 9).map((svc, i) => {
               const visual = TREATMENT_VISUALS[svc.category] ?? { gradient: "from-violet-400 to-violet-600", icon: "✦" };
               return (
@@ -586,6 +664,7 @@ export default function Landing() {
                 </FadeIn>
               );
             })}
+            </div>
           </div>
 
           <FadeIn className="text-center mt-10">
@@ -611,6 +690,30 @@ export default function Landing() {
               Every plan includes monthly Beauty Bank credits and exclusive member pricing on all services.
             </p>
           </FadeIn>
+
+          {/* Photo strip */}
+          <div className="flex justify-center gap-4 mb-8">
+            {[IMAGES.portrait, IMAGES.glowingSkin, IMAGES.skincare, IMAGES.facialTreatment].map((img, i) => (
+              <motion.div
+                key={i}
+                className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-white shadow-md"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <img
+                  src={img}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                />
+              </motion.div>
+            ))}
+            <div className="w-14 h-14 rounded-full bg-violet-600 flex items-center justify-center text-white text-xs font-bold shadow-md">
+              3,250+
+            </div>
+          </div>
+          <p className="text-center text-sm text-gray-500 mb-8">Join thousands of satisfied patients</p>
 
           <div className="grid md:grid-cols-3 gap-8 items-start">
             {MEMBERSHIP_PLANS.map((plan, i) => (
@@ -685,7 +788,16 @@ export default function Landing() {
       {/* ══════════════════════════════════════════════════════════
           7. REVIEWS
       ══════════════════════════════════════════════════════════ */}
-      <section className="py-20 bg-gray-50">
+      <section className="relative py-20 bg-gray-50 overflow-hidden">
+        {/* Subtle background orb */}
+        <div className="absolute top-0 right-0 w-96 h-96 pointer-events-none">
+          <img
+            src={IMAGES.glowingSkin}
+            alt=""
+            className="w-full h-full object-cover rounded-full opacity-[0.06] blur-2xl"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          />
+        </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <FadeIn className="text-center mb-14">
             <p className="text-violet-600 text-sm font-semibold tracking-widest uppercase mb-2">Patient Reviews</p>
@@ -721,7 +833,16 @@ export default function Landing() {
       {/* ══════════════════════════════════════════════════════════
           8. PROVIDERS (id="about")
       ══════════════════════════════════════════════════════════ */}
-      <section id="about" className="py-20 bg-white">
+      <section id="about" className="relative overflow-hidden py-20 bg-white">
+        {/* Background image - heavily overlaid */}
+        <div className="absolute inset-0 pointer-events-none">
+          <img
+            src={IMAGES.medSpa}
+            alt=""
+            className="w-full h-full object-cover opacity-[0.04]"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          />
+        </div>
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <FadeIn className="text-center mb-14">
             <p className="text-violet-600 text-sm font-semibold tracking-widest uppercase mb-2">Our Team</p>
