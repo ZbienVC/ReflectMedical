@@ -7,6 +7,9 @@ import {
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
   signInWithPopup,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
+  ConfirmationResult,
   updateProfile,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
@@ -20,6 +23,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithPhone: (phone: string, recaptchaContainerId: string) => Promise<ConfirmationResult>;
+  verifyPhoneCode: (confirmationResult: ConfirmationResult, code: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
 }
@@ -31,6 +36,8 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signUp: async () => {},
   signInWithGoogle: async () => {},
+  signInWithPhone: async () => { throw new Error("Not initialized"); },
+  verifyPhoneCode: async () => {},
   signOut: async () => {},
   resetPassword: async () => {},
 });
@@ -55,8 +62,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             const newProfile: UserProfile = {
               uid: firebaseUser.uid,
-              name: firebaseUser.displayName || "Patient",
+              name: firebaseUser.displayName || firebaseUser.phoneNumber || "Patient",
               email: firebaseUser.email || "",
+              phone: firebaseUser.phoneNumber || "",
               beautyBucksBalance: 0,
               joinDate: new Date().toISOString(),
               status: "active",
@@ -103,6 +111,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await signInWithPopup(auth, googleProvider);
   };
 
+  const signInWithPhone = async (phone: string, recaptchaContainerId: string): Promise<ConfirmationResult> => {
+    const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
+      size: "invisible",
+      callback: () => {},
+    });
+    const confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+    return confirmationResult;
+  };
+
+  const verifyPhoneCode = async (confirmationResult: ConfirmationResult, code: string) => {
+    await confirmationResult.confirm(code);
+  };
+
   const signOut = async () => {
     await firebaseSignOut(auth);
   };
@@ -112,7 +133,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signUp, signInWithGoogle, signOut, resetPassword }}>
+    <AuthContext.Provider value={{
+      user, profile, loading,
+      signIn, signUp, signInWithGoogle,
+      signInWithPhone, verifyPhoneCode,
+      signOut, resetPassword
+    }}>
       {children}
     </AuthContext.Provider>
   );

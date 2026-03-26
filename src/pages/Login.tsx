@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, Sparkles, Star } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Phone, Star } from "lucide-react";
 import { useAuth } from "../AuthContext";
 
 function getFriendlyError(code: string): string {
@@ -26,7 +26,7 @@ const TESTIMONIALS = [
 ];
 
 const Login: React.FC = () => {
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, signInWithPhone, verifyPhoneCode } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,6 +34,12 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
+  const [authMode, setAuthMode] = useState<"email" | "phone">("email");
+  const [phone, setPhone] = useState("");
+  const [phoneStep, setPhoneStep] = useState<"input" | "verify">("input");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +65,33 @@ const Login: React.FC = () => {
       setError("Google sign-in failed. Please try again.");
     } finally {
       setGoogleLoading(false);
+    }
+  };
+
+  const handlePhoneSend = async () => {
+    setError("");
+    setPhoneLoading(true);
+    try {
+      const result = await signInWithPhone(phone, "recaptcha-container");
+      setConfirmationResult(result);
+      setPhoneStep("verify");
+    } catch (err: any) {
+      setError("Failed to send code. Check the number and try again.");
+    } finally {
+      setPhoneLoading(false);
+    }
+  };
+
+  const handlePhoneVerify = async () => {
+    setError("");
+    setPhoneLoading(true);
+    try {
+      await verifyPhoneCode(confirmationResult, verificationCode);
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError("Invalid code. Please try again.");
+    } finally {
+      setPhoneLoading(false);
     }
   };
 
@@ -191,62 +224,133 @@ const Login: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    required
-                    className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-3 text-gray-900 dark:text-white text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                  <Link to="/forgot-password" className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-700 transition-colors">
-                    Forgot password?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Your password"
-                    required
-                    className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-10 py-3 text-gray-900 dark:text-white text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Submit */}
-              <motion.button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all text-sm shadow-lg shadow-violet-500/20"
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
+            {/* Auth mode tabs */}
+            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+              <button
+                onClick={() => { setAuthMode("email"); setError(""); }}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${authMode === "email" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400"}`}
               >
-                {loading ? "Signing in..." : "Sign In"}
-              </motion.button>
-            </form>
+                Email
+              </button>
+              <button
+                onClick={() => { setAuthMode("phone"); setError(""); }}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${authMode === "phone" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-gray-400"}`}
+              >
+                Phone
+              </button>
+            </div>
+
+            {/* Email form */}
+            {authMode === "email" && (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      required
+                      className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-3 text-gray-900 dark:text-white text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                    <Link to="/forgot-password" className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-700 transition-colors">
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Your password"
+                      required
+                      className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-10 py-3 text-gray-900 dark:text-white text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <motion.button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all text-sm shadow-lg shadow-violet-500/20"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {loading ? "Signing in..." : "Sign In"}
+                </motion.button>
+              </form>
+            )}
+
+            {/* Phone form */}
+            {authMode === "phone" && (
+              <div className="space-y-4">
+                {phoneStep === "input" ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Phone Number</label>
+                      <div className="relative">
+                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="+1 (201) 555-0000"
+                          className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-3 text-gray-900 dark:text-white text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">Include country code (e.g. +1 for US)</p>
+                    </div>
+                    <div id="recaptcha-container" />
+                    <motion.button
+                      onClick={handlePhoneSend}
+                      disabled={phoneLoading || !phone}
+                      className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all text-sm"
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {phoneLoading ? "Sending..." : "Send Verification Code"}
+                    </motion.button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Code sent to <span className="font-semibold text-gray-900 dark:text-white">{phone}</span></p>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Verification Code</label>
+                      <input
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        placeholder="123456"
+                        maxLength={6}
+                        className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-sm text-center tracking-widest text-lg font-semibold placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <motion.button
+                      onClick={handlePhoneVerify}
+                      disabled={phoneLoading || verificationCode.length < 6}
+                      className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all text-sm"
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {phoneLoading ? "Verifying..." : "Verify & Sign In"}
+                    </motion.button>
+                    <button onClick={() => { setPhoneStep("input"); setVerificationCode(""); }} className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                      Use a different number
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Divider */}
             <div className="flex items-center gap-3">
