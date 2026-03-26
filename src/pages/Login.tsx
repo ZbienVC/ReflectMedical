@@ -88,8 +88,8 @@ const Login: React.FC = () => {
           <img
             src="/reflect-logo.jpg"
             alt="Reflect Medical & Cosmetic Center"
-            className="h-14 w-auto object-contain"
-            style={{ filter: "brightness(0) invert(1)", mixBlendMode: "screen" }}
+            className="h-16 w-auto object-contain"
+            style={{ mixBlendMode: "screen", filter: "brightness(1.1) contrast(1.1)" }}
           />
         </motion.div>
 
