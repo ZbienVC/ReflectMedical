@@ -265,58 +265,9 @@ export const realServices = [
   }
 ];
 
-export const realReviews = [
-  {
-    id: "review-1",
-    name: "Maria Rodriguez",
-    rating: 5,
-    date: "2024-03-15",
-    treatment: "Botox & Juvederm",
-    text: "Dr. Patel and his team are absolutely amazing! I've been getting Botox and fillers here for 2 years and the results are always natural and beautiful. The membership program saves me so much money!",
-    verified: true,
-    membershipTier: "Evolve"
-  },
-  {
-    id: "review-2", 
-    name: "Jennifer Kim",
-    rating: 5,
-    date: "2024-03-12",
-    treatment: "HydraFacial",
-    text: "The HydraFacial here is incredible! My skin has never looked better. Sarah is so knowledgeable and makes every visit comfortable. The Transform membership is worth every penny.",
-    verified: true,
-    membershipTier: "Transform"
-  },
-  {
-    id: "review-3",
-    name: "Lisa Thompson", 
-    rating: 5,
-    date: "2024-03-10",
-    treatment: "Laser Hair Removal",
-    text: "I'm halfway through my laser hair removal package and already seeing amazing results! The staff is professional and the facility is spotless. Love my Core membership!",
-    verified: true,
-    membershipTier: "Core"
-  },
-  {
-    id: "review-4",
-    name: "Amanda Chen",
-    rating: 5,
-    date: "2024-03-08", 
-    treatment: "Chemical Peel",
-    text: "The VI Peel transformed my skin! Dr. Patel explained everything thoroughly and the results exceeded my expectations. The membership Beauty Bank made it so affordable.",
-    verified: true,
-    membershipTier: "Evolve"
-  },
-  {
-    id: "review-5",
-    name: "Michelle Davis",
-    rating: 5,
-    date: "2024-03-05",
-    treatment: "Botox",
-    text: "I was nervous about my first Botox treatment but Dr. Patel made me feel so comfortable. The results look completely natural and I've gotten so many compliments!",
-    verified: true,
-    membershipTier: "Core"
-  }
-];
+export { realReviews } from "./reviews";
+
+
 
 export const realStats = {
   patientsServed: 3250,
@@ -326,7 +277,7 @@ export const realStats = {
   beautyBucksEarned: 1850000,
   memberRetention: 94,
   averageRating: 4.9,
-  totalReviews: 847
+  totalReviews: 195
 };
 
 export const membershipTiers = [
@@ -387,5 +338,6 @@ export const membershipTiers = [
     color: "from-yellow-500 to-yellow-600"
   }
 ];
+
 
 
