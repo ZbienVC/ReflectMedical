@@ -72,7 +72,13 @@ const Login: React.FC = () => {
     setError("");
     setPhoneLoading(true);
     try {
-      const result = await signInWithPhone(phone, "recaptcha-container");
+      // Auto-format to E.164: strip non-digits, add +1 if no country code
+      let formatted = phone.replace(/\D/g, "");
+      if (formatted.length === 10) formatted = "+1" + formatted;
+      else if (!formatted.startsWith("+")) formatted = "+" + formatted;
+      else formatted = "+" + formatted;
+
+      const result = await signInWithPhone(formatted, "recaptcha-container");
       setConfirmationResult(result);
       setPhoneStep("verify");
     } catch (err: any) {
@@ -304,11 +310,11 @@ const Login: React.FC = () => {
                           type="tel"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          placeholder="+1 (201) 555-0000"
+                          placeholder="(201) 882-1050"
                           className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-3 text-gray-900 dark:text-white text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                         />
                       </div>
-                      <p className="text-xs text-gray-400 mt-1">Include country code (e.g. +1 for US)</p>
+                      <p className="text-xs text-gray-400 mt-1">US numbers auto-formatted. International? Include country code (+44...).</p>
                     </div>
                     <div id="recaptcha-container" />
                     <motion.button
@@ -390,4 +396,5 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+
 
