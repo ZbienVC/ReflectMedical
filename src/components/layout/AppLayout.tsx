@@ -54,11 +54,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen flex transition-colors duration-200" style={{ backgroundColor: 'var(--bg)', color: 'var(--text-primary)' }}>
       {/* Sidebar (Desktop) */}
       <aside className="hidden md:flex flex-col w-64 border-r fixed h-full z-40 transition-colors duration-200" style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center shadow-sm">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-bold text-xl tracking-tight" style={{ color: 'var(--text-primary)' }}>Reflect</span>
+        <div className="p-5 flex items-center gap-3">
+          <img
+            src="https://reflectcosmetic.com/wp-content/uploads/2020/07/Reflect-Medical-Cosmetic-Center-LOGO.jpeg"
+            alt="Reflect Medical & Cosmetic Center"
+            className="h-10 w-auto object-contain rounded-lg"
+          />
         </div>
 
         <nav className="flex-1 px-4 space-y-1 mt-2">
@@ -108,10 +109,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
       {/* Mobile Topbar */}
       <div className="md:hidden fixed top-0 w-full h-16 z-50 flex items-center justify-between px-4 transition-colors duration-200" style={{ backgroundColor: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Reflect</span>
+          <img
+            src="https://reflectcosmetic.com/wp-content/uploads/2020/07/Reflect-Medical-Cosmetic-Center-LOGO.jpeg"
+            alt="Reflect Medical"
+            className="h-8 w-auto object-contain rounded"
+          />
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
