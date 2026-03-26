@@ -10,7 +10,7 @@ import {
   applyCredits,
   type MembershipTier,
   type TreatmentCategory,
-} from "../../data/skinBank";
+} from "../../data/beautyBank";
 
 const UNIT_LABELS: Record<string, string> = {
   unit: "per unit",
@@ -30,7 +30,7 @@ const TreatmentsByMembership: React.FC = () => {
     treatments: TREATMENTS.filter((t) => t.category === cat),
   })).filter((g) => g.treatments.length > 0);
 
-  // Example treatment for Skin Bank section (RF Microneedling)
+  // Example treatment for Beauty Bank section (RF Microneedling)
   const rfMicroneedling = TREATMENTS.find((t) => t.id === "rf_microneedling")!;
   const rfMemberPrice = getMemberPrice(rfMicroneedling, selectedTier);
   const rfAfterBank = applyCredits(rfMemberPrice, plan.monthlyCredits);
@@ -141,7 +141,7 @@ const TreatmentsByMembership: React.FC = () => {
             ))}
           </div>
 
-          {/* Skin Bank section */}
+          {/* Beauty Bank section */}
           <div className="bg-violet-50 border border-violet-200 rounded-2xl p-5 space-y-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-violet-600 rounded-xl flex items-center justify-center">
@@ -149,7 +149,7 @@ const TreatmentsByMembership: React.FC = () => {
               </div>
               <div>
                 <p className="font-bold text-violet-900 text-sm">
-                  Your ${plan.monthlyCredits} Skin Bank
+                  Your ${plan.monthlyCredits} Beauty Bank
                 </p>
                 <p className="text-violet-700 text-xs">
                   Applies to any treatment above · Unused value rolls over while
@@ -176,7 +176,7 @@ const TreatmentsByMembership: React.FC = () => {
                 </span>
                 <span className="text-gray-300">→</span>
                 <span className="font-bold text-green-700">
-                  After Skin Bank: ${rfAfterBank}
+                  After Beauty Bank: ${rfAfterBank}
                 </span>
               </div>
             </div>
@@ -188,3 +188,4 @@ const TreatmentsByMembership: React.FC = () => {
 };
 
 export default TreatmentsByMembership;
+

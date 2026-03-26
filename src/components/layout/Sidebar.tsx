@@ -19,7 +19,7 @@ const navigationItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Treatments", href: "/treatments", icon: Stethoscope },
   { name: "Membership", href: "/membership", icon: Award },
-  { name: "Skin Bank", href: "/credits", icon: CreditCard },
+  { name: "Beauty Bank", href: "/credits", icon: CreditCard },
   { name: "Referrals", href: "/referrals", icon: Users },
   { name: "Appointments", href: "/appointments", icon: Calendar },
 ];
@@ -78,4 +78,5 @@ export default function Sidebar() {
     </aside>
   );
 }
+
 

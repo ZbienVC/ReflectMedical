@@ -7,7 +7,7 @@ import { MembershipTier } from "../types";
 import { formatCurrency } from "../lib/utils";
 import { addMonthlyCredits } from "../services/membershipService";
 import { membershipTiers, realStats, realReviews, practiceInfo } from "../data/practiceData";
-import { MEMBERSHIP_PLANS } from "../data/skinBank";
+import { MEMBERSHIP_PLANS } from "../data/beautyBank";
 import {
   Sparkles,
   TrendingUp,
@@ -37,20 +37,20 @@ const EnhancedMembership: React.FC = () => {
   const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
   const headerOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0.8]);
 
-  // Derive dynamic benefits from skinBank data
+  // Derive dynamic benefits from beautyBank data
 
-  const getTierFeatures = (tierId: "core" | "evolve" | "transform", skinBankAmount: number): string[] => {
+  const getTierFeatures = (tierId: "core" | "evolve" | "transform", beautyBankAmount: number): string[] => {
     if (tierId === "core") {
       return [
         "Botox from $12/unit (reg. $15)",
-        "$99 monthly Skin Bank value",
+        "$99 monthly Beauty Bank value",
         "10% off chemical peels & skincare",
         "Laser Hair Removal from $135/session",
       ];
     } else if (tierId === "evolve") {
       return [
         "Botox from $10/unit (reg. $15)",
-        "$150 monthly Skin Bank value",
+        "$150 monthly Beauty Bank value",
         "Save $75/syringe on fillers",
         "Save $75 on RF Microneedling",
         "Save $40 on HydraFacial",
@@ -58,7 +58,7 @@ const EnhancedMembership: React.FC = () => {
     } else {
       return [
         "Botox from $9/unit (reg. $15)",
-        "$250 monthly Skin Bank value",
+        "$250 monthly Beauty Bank value",
         "Save $150/syringe on fillers",
         "Save $200 on RF Microneedling",
         "Save $90 on chemical peels",
@@ -312,7 +312,7 @@ const EnhancedMembership: React.FC = () => {
                 Choose Your Membership
               </h2>
               <p className="text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                Every membership includes exclusive member pricing and Monthly Skin Bank toward any treatment.
+                Every membership includes exclusive member pricing and Monthly Beauty Bank toward any treatment.
               </p>
             </div>
 
@@ -404,9 +404,9 @@ const EnhancedMembership: React.FC = () => {
                       )}
                     </div>
 
-                    {/* 7. Skin Bank box */}
+                    {/* 7. Beauty Bank box */}
                     <div className="bg-violet-50 rounded-xl p-4 text-center mb-5">
-                      <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide mb-1">Monthly Skin Bank</p>
+                      <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide mb-1">Monthly Beauty Bank</p>
                       <p className="text-2xl font-black text-violet-700">${tierPlan.monthlyCredits}</p>
                       <p className="text-xs text-gray-500">in treatment value · rolls over</p>
                     </div>
@@ -480,7 +480,7 @@ const EnhancedMembership: React.FC = () => {
                 {
                   step: "1",
                   title: "Choose Your Plan",
-                  description: "Select the membership tier that fits your goals and budget. Every plan includes Skin Bank rewards.",
+                  description: "Select the membership tier that fits your goals and budget. Every plan includes Beauty Bank rewards.",
                   icon: CheckCircle2,
                   color: "bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB]"
                 },
@@ -494,7 +494,7 @@ const EnhancedMembership: React.FC = () => {
                 {
                   step: "3",
                   title: "Start Your Journey",
-                  description: "Begin treatments immediately using your Skin Bank. Watch your confidence transform.",
+                  description: "Begin treatments immediately using your Beauty Bank. Watch your confidence transform.",
                   icon: Star,
                   color: "bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB]"
                 }
@@ -542,7 +542,7 @@ const EnhancedMembership: React.FC = () => {
               {[
                 {
                   icon: Gift,
-                  title: "Skin Bank Rewards",
+                  title: "Beauty Bank Rewards",
                   description: "Every membership dollar becomes treatment credit. It's not a fee-it's your money working for you.",
                   highlight: "100% Value Return"
                 },
@@ -620,15 +620,15 @@ const EnhancedMembership: React.FC = () => {
               {[
                 {
                   question: "Is this really a good value compared to paying per treatment?",
-                  answer: "Absolutely. Most members save $200-500+ monthly through member pricing alone, plus your Skin Bank give you 100% credit value. If you're getting any treatments regularly, membership pays for itself immediately."
+                  answer: "Absolutely. Most members save $200-500+ monthly through member pricing alone, plus your Beauty Bank give you 100% credit value. If you're getting any treatments regularly, membership pays for itself immediately."
                 },
                 {
                   question: "What happens if I want to cancel my membership?",
-                  answer: "No problem. You can cancel anytime with 30 days notice. You'll retain member benefits through your final billing cycle, and any unused Skin Bank remain available for 90 days after cancellation."
+                  answer: "No problem. You can cancel anytime with 30 days notice. You'll retain member benefits through your final billing cycle, and any unused Beauty Bank remain available for 90 days after cancellation."
                 },
                 {
-                  question: "Can I use Skin Bank for any treatment or product?",
-                  answer: "Yes! Skin Bank work like cash for any service or product we offer. There are no restrictions or blackout dates. Use them however best serves your wellness goals."
+                  question: "Can I use Beauty Bank for any treatment or product?",
+                  answer: "Yes! Beauty Bank work like cash for any service or product we offer. There are no restrictions or blackout dates. Use them however best serves your wellness goals."
                 },
                 {
                   question: "How quickly will I see results?",
@@ -744,3 +744,4 @@ const EnhancedMembership: React.FC = () => {
 };
 
 export default EnhancedMembership;
+

@@ -91,21 +91,21 @@ const Credits: React.FC = () => {
     >
       {/* Title */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Your Skin Bank</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">Track your Skin Bank balance, spending power, and recent activity. Unused value rolls over while your membership is active.</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Your Beauty Bank</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">Track your Beauty Bank balance, spending power, and recent activity. Unused value rolls over while your membership is active.</p>
       </div>
 
       {/* Hero Card */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-violet-50 dark:bg-violet-900/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <p className="text-gray-500 dark:text-gray-400 text-sm uppercase tracking-widest font-semibold mb-1 relative">Skin Bank Balance</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm uppercase tracking-widest font-semibold mb-1 relative">Beauty Bank Balance</p>
         <p className="text-5xl font-black text-gray-900 dark:text-white mb-6 relative">{formatCurrency(balance)}</p>
         <Link
           to="/appointments"
           className="relative inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
         >
           <Calendar className="w-4 h-4" />
-          Book Treatment Using Skin Bank
+          Book Treatment Using Beauty Bank
         </Link>
       </div>
 
@@ -113,7 +113,7 @@ const Credits: React.FC = () => {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {[
           { label: "Membership Tier", value: displayTier, icon: <Award className="w-4 h-4 text-violet-600 dark:text-violet-400" /> },
-          { label: "Next Skin Bank Drop", value: "-", icon: <Calendar className="w-4 h-4 text-violet-600 dark:text-violet-400" /> },
+          { label: "Next Beauty Bank Drop", value: "-", icon: <Calendar className="w-4 h-4 text-violet-600 dark:text-violet-400" /> },
           { label: "Monthly Contribution", value: "$0", icon: <DollarSign className="w-4 h-4 text-violet-600 dark:text-violet-400" /> },
         ].map((item) => (
           <div key={item.label} className="bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
@@ -162,7 +162,7 @@ const Credits: React.FC = () => {
       {/* Activity Feed */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Skin Bank Usage</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Beauty Bank Usage</h2>
           <Clock className="w-5 h-5 text-gray-400" />
         </div>
         {isLoading ? (
@@ -175,7 +175,7 @@ const Credits: React.FC = () => {
               <Inbox className="w-6 h-6 text-gray-400" />
             </div>
             <h3 className="font-semibold text-gray-900 dark:text-white">No activity yet</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Your Skin Bank usage will appear here.</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Your Beauty Bank usage will appear here.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -203,4 +203,5 @@ const Credits: React.FC = () => {
 };
 
 export default Credits;
+
 

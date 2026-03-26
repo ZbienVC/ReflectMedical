@@ -11,10 +11,10 @@ const TIERS = [
     id: "core",
     name: "Core",
     price: 79,
-    skinBank: 99,
+    beautyBank: 99,
     benefits: [
       "Botox from $12/unit (reg. $15)",
-      "$99 monthly Skin Bank value",
+      "$99 monthly Beauty Bank value",
       "10% off chemical peels & skincare",
       "Laser Hair Removal from $135/session",
     ],
@@ -25,10 +25,10 @@ const TIERS = [
     id: "evolve",
     name: "Evolve",
     price: 129,
-    skinBank: 150,
+    beautyBank: 150,
     benefits: [
       "Botox from $10/unit (reg. $15)",
-      "$150 monthly Skin Bank value",
+      "$150 monthly Beauty Bank value",
       "Save $75/syringe on fillers",
       "Save $75 on RF Microneedling",
       "Save $40 on HydraFacial",
@@ -41,10 +41,10 @@ const TIERS = [
     id: "transform",
     name: "Transform",
     price: 199,
-    skinBank: 250,
+    beautyBank: 250,
     benefits: [
       "Botox from $9/unit (reg. $15)",
-      "$250 monthly Skin Bank value",
+      "$250 monthly Beauty Bank value",
       "Save $150/syringe on fillers",
       "Save $200 on RF Microneedling",
       "Save $90 on Chemical Peels",
@@ -225,7 +225,7 @@ const Onboarding: React.FC = () => {
                       <div className="text-gray-900 dark:text-white font-black text-2xl mb-1">
                         ${tier.price}<span className="text-sm font-normal text-gray-500 dark:text-gray-400">/mo</span>
                       </div>
-                      <div className="text-violet-600 text-xs font-semibold mb-3">${tier.skinBank} Skin Bank/mo</div>
+                      <div className="text-violet-600 text-xs font-semibold mb-3">${tier.beautyBank} Beauty Bank/mo</div>
                       <ul className="space-y-1.5">
                         {tier.benefits.map((b) => (
                           <li key={b} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400">
@@ -287,13 +287,13 @@ const Onboarding: React.FC = () => {
                   </div>
                   {selectedTierData && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500 dark:text-gray-400">Monthly Skin Bank</span>
-                      <span className="text-green-600 dark:text-green-400 font-medium">${selectedTierData.skinBank}</span>
+                      <span className="text-gray-500 dark:text-gray-400">Monthly Beauty Bank</span>
+                      <span className="text-green-600 dark:text-green-400 font-medium">${selectedTierData.beautyBank}</span>
                     </div>
                   )}
                   <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
                     <p className="text-gray-500 dark:text-gray-400 text-xs">
-                      Your Skin Bank will be added on the 1st of each month. You can start booking treatments right away.
+                      Your Beauty Bank will be added on the 1st of each month. You can start booking treatments right away.
                     </p>
                   </div>
                 </div>
@@ -311,4 +311,5 @@ const Onboarding: React.FC = () => {
 };
 
 export default Onboarding;
+
 

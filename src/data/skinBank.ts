@@ -26,7 +26,7 @@ export interface MembershipPlan {
   id: MembershipTier;
   name: string;
   monthlyPrice: number;
-  monthlyCredits: number; // "Skin Bank" value
+  monthlyCredits: number; // "Beauty Bank" value
   description: string;
   highlighted?: boolean;
 }
@@ -283,3 +283,4 @@ export const CATEGORY_ORDER: TreatmentCategory[] = [
   "BODY",
   "PRODUCT",
 ];
+
