@@ -49,17 +49,17 @@ export const physicians = [
     image: null
   },
   {
-    id: "jessica-mamola",
-    name: "Jessica Mamola",
-    title: "Laser Specialist — Certified by The Institute For Laser Medicine",
-    credentials: "Laser Medicine Certified",
+    id: "douglas-bienstock",
+    name: "Douglas Bienstock",
+    title: "DO — Board Certified in Family Practice",
+    credentials: "DO",
     specialties: [
-      "Laser Hair Removal",
-      "Skin of Color Specialist",
-      "Skincare",
-      "Client Experience"
+      "Family Practice",
+      "Primary Care",
+      "Addiction Recovery (Suboxone)",
+      "Weight Management (GLP-1 Therapy)"
     ],
-    bio: "Jessica Mamola joins Reflect Medical and Cosmetic with 5 star reviews. What Jessica's clients love most is her ability to put people at ease and feel comfortable right away. She is warm, empathetic and takes her time with each client. With a vast background in sales, customer service, skincare and makeup artistry, Jessica is certified by The Institute For Laser Medicine. With each client encounter, she recognizes the opportunity to demonstrate excellence by making a positive difference in someone's life.",
+    bio: "Dr. Douglas Bienstock is a board-certified Family Practice physician bringing comprehensive primary care and medical expertise to Reflect Medical & Cosmetic Center. Dr. Bienstock oversees medical services including addiction recovery treatment and weight management programs, providing patients with compassionate, evidence-based care.",
     image: null
   }
 ];
