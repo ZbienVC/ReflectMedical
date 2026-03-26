@@ -8,6 +8,7 @@ import { formatCurrency } from "../lib/utils";
 import { addMonthlyCredits } from "../services/membershipService";
 import { membershipTiers, realStats, realReviews, practiceInfo } from "../data/practiceData";
 import { MEMBERSHIP_PLANS } from "../data/skinBank";
+import { realReviews } from "../data/practiceData";
 import {
   Sparkles,
   TrendingUp,
@@ -210,20 +211,20 @@ const EnhancedMembership: React.FC = () => {
                 Trusted by Thousands
               </Badge>
               <h2 className="text-3xl md:text-4xl font-bold text-[#1F2937] mb-4">
-                Join 3,200+ Happy Members
+                Join 3,250+ Happy Patients
               </h2>
               <p className="text-lg text-[#6B7280] max-w-3xl mx-auto">
-                Thousands of people have discovered the confidence that comes from premium aesthetic care and proven results
+                Real patients. Real results. See what our community says about their experience at Reflect Medical.
               </p>
             </motion.div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
               {[
-                { number: "3,200+", label: "Active Members", icon: Users },
-                { number: "98%", label: "Satisfaction Rate", icon: Heart },
-                { number: "15,000+", label: "Treatments Completed", icon: TrendingUp },
-                { number: "4.9/5", label: "Average Rating", icon: Star }
+                { number: "3,250+", label: "Patients Served", icon: Users },
+                { number: "4.9/5", label: "Average Rating", icon: Star },
+                { number: "195+", label: "Google Reviews", icon: Heart },
+                { number: "8+", label: "Years in Business", icon: TrendingUp }
               ].map((stat, index) => (
                 <motion.div
                   key={index}
@@ -244,34 +245,9 @@ const EnhancedMembership: React.FC = () => {
 
             {/* Customer Reviews */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                {
-                  name: "Sarah Johnson",
-                  rating: 5,
-                  text: "The Evolve tier has been incredible! My confidence has never been higher, and the credits make every treatment feel like an investment that pays for itself.",
-                  treatment: "HydraFacial",
-                  tier: "Evolve",
-                  image: "SJ"
-                },
-                {
-                  name: "Michael Chen",
-                  rating: 5,
-                  text: "I love the priority booking and member pricing. I've saved over $300 this month alone, and the results speak for themselves.",
-                  treatment: "Botox",
-                  tier: "Transform",
-                  image: "MC"
-                },
-                {
-                  name: "Jessica Martinez",
-                  rating: 5,
-                  text: "Best decision I've made for myself! The personal care team knows exactly what I need, and I never feel like just another patient.",
-                  treatment: "Laser Resurfacing",
-                  tier: "Core",
-                  image: "JM"
-                }
-              ].map((review, index) => (
+              {realReviews.slice(0, 3).map((review, index) => (
                 <motion.div
-                  key={index}
+                  key={review.id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 1.2 + index * 0.1, ease: "easeInOut" }}
@@ -279,21 +255,21 @@ const EnhancedMembership: React.FC = () => {
                   <Card variant="elevated" padding="lg" hover className="h-full group bg-white rounded-2xl shadow-lg hover:shadow-xl border border-black/5">
                     <div className="flex items-center gap-4 mb-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB] rounded-full flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform duration-200">
-                        {review.image}
+                        {review.name.charAt(0)}
                       </div>
                       <div>
                         <h4 className="font-semibold text-[#1F2937]">{review.name}</h4>
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'text-[#B57EDC] fill-current' : 'text-gray-200'}`} />
+                        <div className="flex gap-0.5 mt-1">
+                          {Array.from({ length: review.rating }).map((_, i) => (
+                            <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                           ))}
                         </div>
                       </div>
                     </div>
-                    <p className="text-[#6B7280] italic leading-relaxed mb-4">"{review.text}"</p>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" size="sm" className="border-[#B57EDC]/20 text-[#6B7280]">{review.treatment}</Badge>
-                      <Badge variant="success" size="sm" className="bg-[#B57EDC]/10 text-[#B57EDC]">{review.tier} Member</Badge>
+                    <p className="text-[#6B7280] text-sm leading-relaxed mb-4 italic">"{review.text}"</p>
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+                      <span className="text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">{review.treatment}</span>
+                      <span className="text-xs text-[#B57EDC] bg-[#B57EDC]/5 px-3 py-1 rounded-full border border-[#B57EDC]/20">{review.source}</span>
                     </div>
                   </Card>
                 </motion.div>
