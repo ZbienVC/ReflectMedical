@@ -32,11 +32,15 @@ interface TreatmentAffordability {
 function getAffordability(balance: number): TreatmentAffordability[] {
   const result: TreatmentAffordability[] = [];
   for (const t of treatments) {
-    for (const v of t.variants) {
-      const price = v.flatPrice ?? (v.pricePerUnit ? v.pricePerUnit * 30 : 0);
-      if (price === 0) continue;
-      result.push({ name: v.name, price, covered: balance >= price, deficit: Math.max(0, price - balance) });
-    }
+    const price = t.basePrice ?? 0;
+    if (price === 0) continue;
+    const unitLabel = t.unitType ? `/${t.unitType}` : "";
+    result.push({
+      name: `${t.name}${unitLabel}`,
+      price,
+      covered: balance >= price,
+      deficit: Math.max(0, price - balance)
+    });
   }
   return result.sort((a, b) => {
     if (a.covered && !b.covered) return -1;
