@@ -54,11 +54,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen flex transition-colors duration-200" style={{ backgroundColor: 'var(--bg)', color: 'var(--text-primary)' }}>
       {/* Sidebar (Desktop) */}
       <aside className="hidden md:flex flex-col w-64 border-r fixed h-full z-40 transition-colors duration-200" style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
-        <div className="p-5 flex items-center gap-3">
+        <div className="p-5 flex items-center">
           <img
-            src="https://reflectcosmetic.com/wp-content/uploads/2020/07/Reflect-Medical-Cosmetic-Center-LOGO.jpeg"
+            src="/reflect-logo.jpg"
             alt="Reflect Medical & Cosmetic Center"
-            className="h-10 w-auto object-contain rounded-lg"
+            className="h-12 w-auto object-contain"
           />
         </div>
 
@@ -110,9 +110,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <div className="md:hidden fixed top-0 w-full h-16 z-50 flex items-center justify-between px-4 transition-colors duration-200" style={{ backgroundColor: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
         <div className="flex items-center gap-2">
           <img
-            src="https://reflectcosmetic.com/wp-content/uploads/2020/07/Reflect-Medical-Cosmetic-Center-LOGO.jpeg"
+            src="/reflect-logo.jpg"
             alt="Reflect Medical"
-            className="h-8 w-auto object-contain rounded"
+            className="h-8 w-auto object-contain"
           />
         </div>
         <div className="flex items-center gap-2">
