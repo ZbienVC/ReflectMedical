@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Clock, Star, ChevronDown, ChevronUp, Zap, Droplets, Sparkles, Syringe, Layers, FlaskConical } from "lucide-react";
 import { treatments, MEMBERSHIP_DISCOUNTS, calculateSavings, Treatment, TreatmentVariant } from "../data/treatments";
 
@@ -24,6 +25,7 @@ interface TreatmentCardProps {
 
 const TreatmentCard: React.FC<TreatmentCardProps> = ({ treatment, selectedTier }) => {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
 
   const getBasePrice = (v: TreatmentVariant) =>
     v.flatPrice ?? (v.pricePerUnit ?? 0);
@@ -36,13 +38,13 @@ const TreatmentCard: React.FC<TreatmentCardProps> = ({ treatment, selectedTier }
   return (
     <motion.div
       layout
-      className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-violet-200 dark:hover:border-violet-600 hover:shadow-md transition-all duration-300"
+      className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-violet-200 dark:hover:border-violet-600 hover:shadow-md transition-all duration-300 flex flex-col"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
     >
       {/* Header */}
-      <div className="p-6">
+      <div className="p-6 flex-1">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${TIER_COLORS[selectedTier]} flex items-center justify-center text-white`}>
@@ -159,9 +161,10 @@ const TreatmentCard: React.FC<TreatmentCardProps> = ({ treatment, selectedTier }
       )}
 
       {/* CTA */}
-      <div className="px-6 pb-5">
+      <div className="px-6 pb-5 mt-auto">
         <motion.button
-          className={`w-full bg-gradient-to-r ${TIER_COLORS[selectedTier]} text-white py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity`}
+          onClick={() => navigate(`/appointments?service=${encodeURIComponent(treatment.name)}`)}
+          className="w-full bg-violet-600 hover:bg-violet-700 text-white py-2.5 rounded-xl font-semibold text-sm transition-colors"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
