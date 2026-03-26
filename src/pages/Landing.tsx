@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { motion, useInView, animate } from "framer-motion";
 import {
   Star, MapPin, Phone, Clock, Instagram, Facebook, ChevronRight,
-  Menu, X, CheckCircle, ArrowRight, Sparkles, Calendar, Gift, ChevronDown, ChevronUp
+  Menu, X, CheckCircle, ArrowRight, Sparkles, Calendar, Gift, ChevronDown, ChevronUp,
+  Users, MessageSquare
 } from "lucide-react";
 import { practiceInfo, physicians } from "../data/practiceData";
 import { realReviews } from "../data/reviews";
@@ -37,6 +38,26 @@ const CATEGORY_MAP: Record<string, string[]> = {
   "Laser": ["LHR"],
   "Wellness": ["GLP"],
 };
+
+// ─── Treatment visuals ───────────────────────────────────────────────────────
+const TREATMENT_VISUALS: Record<string, { gradient: string; icon: string }> = {
+  "Neurotoxins": { gradient: "from-violet-500 to-purple-600", icon: "💉" },
+  "Dermal Fillers": { gradient: "from-pink-400 to-rose-500", icon: "✨" },
+  "Medical Device": { gradient: "from-blue-500 to-cyan-600", icon: "⚡" },
+  "Chemical Peel": { gradient: "from-emerald-400 to-teal-500", icon: "🌿" },
+  "LHR": { gradient: "from-amber-400 to-orange-500", icon: "⚡" },
+  "GLP": { gradient: "from-violet-400 to-indigo-600", icon: "🌿" },
+};
+
+// ─── Marquee stats ───────────────────────────────────────────────────────────
+const MARQUEE_STATS = [
+  { icon: <Users className="w-5 h-5" />, value: "3,250+", label: "Patients Served" },
+  { icon: <Star className="w-5 h-5" />, value: "4.9 ★", label: "Average Rating" },
+  { icon: <MessageSquare className="w-5 h-5" />, value: "195+", label: "Google Reviews" },
+  { icon: <Calendar className="w-5 h-5" />, value: "8+", label: "Years in Business" },
+  { icon: <Clock className="w-5 h-5" />, value: "Same Day", label: "Appointments Available" },
+  { icon: <Sparkles className="w-5 h-5" />, value: "3 Tiers", label: "Membership Plans" },
+];
 
 // ─── Star row ────────────────────────────────────────────────────────────────
 function Stars({ n = 5 }: { n?: number }) {
@@ -259,6 +280,52 @@ export default function Landing() {
           2. HERO
       ══════════════════════════════════════════════════════════ */}
       <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-16">
+        {/* Dot grid */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.03]"
+          style={{
+            backgroundImage: "radial-gradient(circle, #7C3AED 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+
+        {/* Floating orbs */}
+        <motion.div
+          className="absolute top-[-100px] right-[-150px] w-[600px] h-[600px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(124,58,237,0.10) 0%, transparent 70%)" }}
+          animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-[-80px] left-[-100px] w-[400px] h-[400px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(244,114,182,0.08) 0%, transparent 70%)" }}
+          animate={{ scale: [1, 1.12, 1], opacity: [0.5, 0.9, 0.5] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+        <motion.div
+          className="absolute top-[40%] right-[10%] w-[200px] h-[200px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 70%)" }}
+          animate={{ y: [-10, 10, -10], opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+
+        {/* Floating decorative icons */}
+        {[
+          { icon: "✦", top: "15%", right: "8%", size: "text-4xl", delay: 0, color: "text-violet-300" },
+          { icon: "◈", top: "65%", right: "15%", size: "text-2xl", delay: 1.5, color: "text-pink-200" },
+          { icon: "✦", top: "30%", left: "4%", size: "text-3xl", delay: 3, color: "text-violet-200" },
+          { icon: "◇", bottom: "20%", left: "8%", size: "text-xl", delay: 2, color: "text-violet-300" },
+          { icon: "✦", top: "8%", left: "20%", size: "text-lg", delay: 4, color: "text-pink-200" },
+        ].map((el, i) => (
+          <motion.div
+            key={i}
+            className={`absolute ${el.color} ${el.size} pointer-events-none select-none`}
+            style={{ top: (el as any).top, right: (el as any).right, left: (el as any).left, bottom: (el as any).bottom }}
+            animate={{ y: [-8, 8, -8], rotate: [-5, 5, -5], opacity: [0.15, 0.25, 0.15] }}
+            transition={{ duration: 5 + i, repeat: Infinity, ease: "easeInOut", delay: el.delay }}
+          />
+        ))}
+
         {/* Decorative gradient blob top-right */}
         <div className="absolute top-0 right-0 w-2/3 h-full pointer-events-none">
           <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-violet-50 via-violet-50/40 to-transparent" />
@@ -388,19 +455,14 @@ export default function Landing() {
       <section className="bg-gray-50 border-y border-gray-100 py-6 overflow-hidden">
         <div className="flex animate-marquee whitespace-nowrap">
           {[...Array(3)].map((_, i) =>
-            [
-              "3,250+ Patients Served",
-              "4.9 ⭐ Average Rating",
-              "195+ Google Reviews",
-              "8+ Years in Business",
-              "Same-Day Appointments",
-            ].map((stat) => (
+            MARQUEE_STATS.map((stat) => (
               <span
-                key={`${i}-${stat}`}
+                key={`${i}-${stat.label}`}
                 className="inline-flex items-center gap-2 mx-10 text-sm font-semibold text-gray-600"
               >
-                <span className="w-2 h-2 rounded-full bg-violet-400 inline-block" />
-                {stat}
+                <span className="text-violet-400">{stat.icon}</span>
+                <span className="font-bold text-violet-600">{stat.value}</span>
+                <span>{stat.label}</span>
               </span>
             ))
           )}
@@ -490,31 +552,40 @@ export default function Landing() {
 
           {/* Treatment cards */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredServices.slice(0, 9).map((svc, i) => (
-              <FadeIn key={svc.id} delay={i * 0.05}>
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-violet-200 hover:shadow-lg transition h-full flex flex-col">
-                  <span className="text-xs font-semibold text-violet-600 bg-violet-50 px-2.5 py-1 rounded-full self-start mb-3">
-                    {svc.category}
-                  </span>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{svc.name}</h3>
-                  <p className="text-sm text-gray-500 mb-4 flex-1 leading-relaxed line-clamp-3">
-                    {svc.description}
-                  </p>
-                  <div className="flex items-center justify-between mt-auto">
-                    <span className="text-base font-bold text-gray-900">
-                      From ${svc.price.base}
-                      <span className="text-xs text-gray-400 font-normal ml-1">{svc.price.unit}</span>
+            {filteredServices.slice(0, 9).map((svc, i) => {
+              const visual = TREATMENT_VISUALS[svc.category] ?? { gradient: "from-violet-400 to-violet-600", icon: "✦" };
+              return (
+                <FadeIn key={svc.id} delay={i * 0.05}>
+                  <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-violet-200 hover:shadow-lg transition h-full flex flex-col overflow-hidden relative">
+                    {/* Colored top accent strip */}
+                    <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${visual.gradient}`} />
+                    {/* Background icon */}
+                    <div className="absolute top-2 right-3 text-5xl opacity-[0.07] pointer-events-none select-none leading-none">
+                      {visual.icon}
+                    </div>
+                    <span className="text-xs font-semibold text-violet-600 bg-violet-50 px-2.5 py-1 rounded-full self-start mb-3 mt-2">
+                      {svc.category}
                     </span>
-                    <Link
-                      to="/appointments"
-                      className="text-sm font-semibold text-violet-600 hover:text-violet-800 flex items-center gap-1"
-                    >
-                      Book <ChevronRight className="w-4 h-4" />
-                    </Link>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{svc.name}</h3>
+                    <p className="text-sm text-gray-500 mb-4 flex-1 leading-relaxed line-clamp-3">
+                      {svc.description}
+                    </p>
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className="text-base font-bold text-gray-900">
+                        From ${svc.price.base}
+                        <span className="text-xs text-gray-400 font-normal ml-1">{svc.price.unit}</span>
+                      </span>
+                      <Link
+                        to="/appointments"
+                        className="text-sm font-semibold text-violet-600 hover:text-violet-800 flex items-center gap-1"
+                      >
+                        Book <ChevronRight className="w-4 h-4" />
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </FadeIn>
-            ))}
+                </FadeIn>
+              );
+            })}
           </div>
 
           <FadeIn className="text-center mt-10">
@@ -572,9 +643,18 @@ export default function Landing() {
                     <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${plan.highlighted ? "text-violet-300" : "text-gray-400"}`}>
                       Monthly Beauty Bank
                     </p>
-                    <p className={`text-2xl font-black ${plan.highlighted ? "text-white" : "text-violet-600"}`}>
-                      ${plan.monthlyCredits} Credits
-                    </p>
+                    <div className="relative">
+                      <motion.div
+                        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                      >
+                        <div className="w-16 h-16 rounded-full border border-violet-200 opacity-30" />
+                      </motion.div>
+                      <p className={`text-2xl font-black relative z-10 ${plan.highlighted ? "text-white" : "text-violet-600"}`}>
+                        ${plan.monthlyCredits} Credits
+                      </p>
+                    </div>
                   </div>
                   <Link
                     to="/signup"
@@ -616,9 +696,10 @@ export default function Landing() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {realReviews.slice(0, 6).map((review, i) => (
               <FadeIn key={review.id} delay={i * 0.08}>
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-violet-200 hover:shadow-md transition h-full flex flex-col">
+                <div className="relative bg-white rounded-2xl p-6 border border-gray-100 hover:border-violet-200 hover:shadow-md transition h-full flex flex-col overflow-hidden">
+                  <div className="absolute top-2 left-3 text-8xl font-serif text-violet-100 leading-none pointer-events-none select-none">"</div>
                   <Stars n={review.rating} />
-                  <p className="text-gray-700 text-sm leading-relaxed mt-3 mb-4 flex-1">
+                  <p className="text-gray-700 text-sm leading-relaxed mt-3 mb-4 flex-1 relative z-10">
                     "{review.text}"
                   </p>
                   <div className="mt-auto flex items-center justify-between">
@@ -755,8 +836,21 @@ export default function Landing() {
       {/* ══════════════════════════════════════════════════════════
           10. FINAL CTA
       ══════════════════════════════════════════════════════════ */}
-      <section className="py-24 bg-gradient-to-br from-violet-600 to-violet-800 text-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+      <section className="relative py-24 bg-gradient-to-br from-violet-600 to-violet-800 text-white overflow-hidden">
+        {/* Floating particles */}
+        {[...Array(8)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1.5 h-1.5 rounded-full bg-white/30 pointer-events-none"
+            style={{
+              left: `${10 + i * 12}%`,
+              top: `${20 + (i % 3) * 25}%`,
+            }}
+            animate={{ y: [-20, -60, -20], opacity: [0, 0.6, 0] }}
+            transition={{ duration: 3 + i * 0.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.4 }}
+          />
+        ))}
+        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <FadeIn>
             <h2 className="text-4xl md:text-5xl font-black mb-4">
               Ready to Transform Your Look?
