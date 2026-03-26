@@ -7,7 +7,7 @@ import { MembershipTier } from "../types";
 import { formatCurrency } from "../lib/utils";
 import { addMonthlyCredits } from "../services/membershipService";
 import { membershipTiers, realStats, realReviews, practiceInfo } from "../data/practiceData";
-import { MEMBERSHIP_PLANS } from "../data/beautyBank";
+import { MEMBERSHIP_PLANS } from "../data/skinBank";
 import {
   Sparkles,
   TrendingUp,
@@ -744,4 +744,5 @@ const EnhancedMembership: React.FC = () => {
 };
 
 export default EnhancedMembership;
+
 
