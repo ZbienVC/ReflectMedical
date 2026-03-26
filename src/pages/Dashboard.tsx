@@ -50,8 +50,14 @@ const Dashboard: React.FC = () => {
   }, [user]);
 
   const firstName = (profile?.name ?? user?.displayName ?? "there").split(" ")[0];
+
+  // Normalize legacy tier names (gold→Evolve, silver→Core, platinum→Transform)
+  const TIER_MAP: Record<string, string> = {
+    silver: "Core", gold: "Evolve", platinum: "Transform",
+    core: "Core", evolve: "Evolve", transform: "Transform"
+  };
   const membershipTier = profile?.membershipTierId
-    ? profile.membershipTierId.charAt(0).toUpperCase() + profile.membershipTierId.slice(1)
+    ? TIER_MAP[profile.membershipTierId.toLowerCase()] ?? (profile.membershipTierId.charAt(0).toUpperCase() + profile.membershipTierId.slice(1))
     : null;
   const completedCount = transactions.filter((t) => t.status === "completed").length;
 

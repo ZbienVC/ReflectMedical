@@ -8,37 +8,48 @@ import { useAuth } from "../AuthContext";
 
 const TIERS = [
   {
-    id: "silver",
-    name: "Silver",
-    price: 84,
-    credits: 100,
-    savings: 16,
-    benefits: ["$100 monthly credits", "10% off all treatments", "Priority booking", "Member-only events"],
-    color: "from-gray-400 to-gray-600",
-    border: "border-gray-300 dark:border-gray-600",
+    id: "core",
+    name: "Core",
+    price: 79,
+    skinBank: 99,
+    benefits: [
+      "Botox from $12/unit (reg. $15)",
+      "$99 monthly Skin Bank value",
+      "10% off chemical peels & skincare",
+      "Laser Hair Removal from $135/session",
+    ],
+    border: "border-gray-200",
     activeBorder: "border-violet-500",
   },
   {
-    id: "gold",
-    name: "Gold",
-    price: 124,
-    credits: 150,
-    savings: 26,
-    benefits: ["$150 monthly credits", "15% off all treatments", "Priority booking", "Free consultations", "Member-only events"],
-    color: "from-yellow-400 to-yellow-600",
-    border: "border-yellow-200 dark:border-yellow-800",
-    activeBorder: "border-yellow-500",
+    id: "evolve",
+    name: "Evolve",
+    price: 129,
+    skinBank: 150,
+    benefits: [
+      "Botox from $10/unit (reg. $15)",
+      "$150 monthly Skin Bank value",
+      "Save $75/syringe on fillers",
+      "Save $75 on RF Microneedling",
+      "Save $40 on HydraFacial",
+    ],
+    border: "border-gray-200",
+    activeBorder: "border-violet-500",
     popular: true,
   },
   {
-    id: "platinum",
-    name: "Platinum",
-    price: 200,
-    credits: 250,
-    savings: 50,
-    benefits: ["$250 monthly credits", "20% off all treatments", "VIP priority booking", "Free consultations", "Exclusive events", "Dedicated concierge"],
-    color: "from-violet-500 to-violet-700",
-    border: "border-violet-200 dark:border-violet-800",
+    id: "transform",
+    name: "Transform",
+    price: 199,
+    skinBank: 250,
+    benefits: [
+      "Botox from $9/unit (reg. $15)",
+      "$250 monthly Skin Bank value",
+      "Save $150/syringe on fillers",
+      "Save $200 on RF Microneedling",
+      "Save $90 on Chemical Peels",
+    ],
+    border: "border-gray-200",
     activeBorder: "border-violet-500",
   },
 ];
@@ -119,10 +130,7 @@ const Onboarding: React.FC = () => {
     <div className="min-h-screen bg-[#F8F7FB] dark:bg-[#0B0B0F] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-2">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-violet-800 mb-3">
-            <span className="text-white font-black">R</span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reflect Medical</h1>
+          <img src="/reflect-logo.png" alt="Reflect Medical" className="h-12 w-auto object-contain mx-auto mb-3" />
         </div>
 
         <ProgressBar step={step} />
@@ -207,19 +215,19 @@ const Onboarding: React.FC = () => {
                       }`}
                     >
                       {tier.popular && (
-                        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                          <span className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black text-xs font-bold px-3 py-0.5 rounded-full">
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                          <span className="bg-violet-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
                             Most Popular
                           </span>
                         </div>
                       )}
-                      <div className={`inline-block text-transparent bg-clip-text bg-gradient-to-r ${tier.color} text-lg font-black mb-1`}>
+                      <div className="text-violet-700 text-lg font-black mb-1">
                         {tier.name}
                       </div>
                       <div className="text-gray-900 dark:text-white font-black text-2xl mb-1">
                         ${tier.price}<span className="text-sm font-normal text-gray-500 dark:text-gray-400">/mo</span>
                       </div>
-                      <div className="text-green-600 dark:text-green-400 text-xs font-medium mb-3">${tier.credits} credits/mo</div>
+                      <div className="text-violet-600 text-xs font-semibold mb-3">${tier.skinBank} Skin Bank/mo</div>
                       <ul className="space-y-1.5">
                         {tier.benefits.map((b) => (
                           <li key={b} className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400">
@@ -305,3 +313,4 @@ const Onboarding: React.FC = () => {
 };
 
 export default Onboarding;
+
