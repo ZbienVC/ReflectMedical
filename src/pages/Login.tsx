@@ -62,7 +62,8 @@ const Login: React.FC = () => {
       await signInWithGoogle();
       navigate("/dashboard");
     } catch (err: any) {
-      setError("Google sign-in failed. Please try again.");
+      // Show the actual Firebase error code for debugging
+      setError(`Google sign-in failed: ${err.code || err.message}`);
     } finally {
       setGoogleLoading(false);
     }
