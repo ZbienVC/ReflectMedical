@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { AppointmentData } from "../services/appointmentService";
 import { GiftCardData, generateGiftCardCode } from "../services/giftCardService";
+import { sendPostVisitFollowUp } from "../services/notificationService";
 import { sendAppointmentReminder } from "../services/notificationService";
 import { INITIAL_MEMBERSHIP_TIERS, INITIAL_SERVICES } from "../constants";
 import { writeBatch } from "firebase/firestore";
@@ -135,11 +136,13 @@ function AppointmentsTab({
   loading,
   onConfirm,
   onCancel,
+  onRequestReview,
 }: {
   appointments: AppointmentData[];
   loading: boolean;
   onConfirm: (id: string) => void;
   onCancel: (id: string) => void;
+  onRequestReview: (id: string, appt: AppointmentData) => void;
 }) {
   const [filter, setFilter] = useState<ApptFilter>("all");
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
@@ -243,6 +246,19 @@ function AppointmentsTab({
                           className="px-2.5 py-1 bg-violet-100 text-violet-700 rounded-lg text-xs font-semibold hover:bg-violet-200 transition-colors"
                         >
                           {reminderSent === a.id ? "Sent ✓" : "Send Reminder"}
+                        </button>
+                      )}
+                      {a.status === "confirmed" && (
+                        <button
+                          onClick={() => onRequestReview(a.id!, a)}
+                          disabled={!!a.reviewRequested}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                            a.reviewRequested
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : "bg-green-100 text-green-700 hover:bg-green-200"
+                          }`}
+                        >
+                          {a.reviewRequested ? "Review Requested ✓" : "Request Review"}
                         </button>
                       )}
                       {a.status !== "cancelled" && (
@@ -709,6 +725,16 @@ const Admin: React.FC = () => {
     setAppointments((prev) => prev.map((a) => a.id === id ? { ...a, status: "cancelled" as const } : a));
   };
 
+  const handleRequestReview = async (id: string, appt: AppointmentData) => {
+    try {
+      await sendPostVisitFollowUp({ name: appt.name, email: appt.email, service: appt.service });
+      await updateDoc(doc(db, "appointments", id), { reviewRequested: true });
+      setAppointments((prev) => prev.map((a) => a.id === id ? { ...a, reviewRequested: true } : a));
+    } catch (err) {
+      console.warn("handleRequestReview error", err);
+    }
+  };
+
   const handleSeed = async () => {
     const batch = writeBatch(db);
     for (const tier of INITIAL_MEMBERSHIP_TIERS) {
@@ -778,6 +804,7 @@ const Admin: React.FC = () => {
             loading={loadingAppts}
             onConfirm={handleConfirm}
             onCancel={handleCancel}
+            onRequestReview={handleRequestReview}
           />
         )}
         {tab === "members" && <MembersTab members={members} loading={loadingMembers} />}

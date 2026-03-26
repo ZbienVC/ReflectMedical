@@ -14,6 +14,7 @@ import {
   Sparkles,
   Award,
   ClipboardList,
+  Tag,
 } from "lucide-react";
 import { useAuth } from "../../AuthContext";
 import { db } from "../../firebase";
@@ -23,6 +24,7 @@ const navigationItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Treatments", href: "/treatments", icon: Stethoscope },
   { name: "Membership", href: "/membership", icon: Award },
+  { name: "Packages", href: "/packages", icon: Tag },
   { name: "Beauty Bank", href: "/credits", icon: CreditCard },
   { name: "Referrals", href: "/referrals", icon: Users },
   { name: "Appointments", href: "/appointments", icon: Calendar },

@@ -19,6 +19,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Onboarding from "./pages/Onboarding";
 import Profile from "./pages/Profile";
 import IntakeForm from "./pages/IntakeForm";
+import Packages from "./pages/Packages";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AppLayout from "./components/layout/AppLayout";
 
@@ -68,6 +69,7 @@ export default function App() {
               <Route path="/checkout/:serviceId" element={<PrivateRoute><Checkout /></PrivateRoute>} />
               <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
               <Route path="/intake" element={<PrivateRoute><IntakeForm /></PrivateRoute>} />
+              <Route path="/packages" element={<PrivateRoute><Packages /></PrivateRoute>} />
               <Route path="/admin" element={<PrivateRoute adminOnly><Admin /></PrivateRoute>} />
 
               <Route path="*" element={<NotFound />} />
