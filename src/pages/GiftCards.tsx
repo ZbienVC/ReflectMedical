@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Gift, Mail, MessageSquare, Star, Check, Sparkles, ArrowLeft } from "lucide-react";
+import { Gift, Mail, MessageSquare, Star, Check, Sparkles } from "lucide-react";
 import { createGiftCard, generateGiftCardCode } from "../services/giftCardService";
 
 const AMOUNTS = [50, 100, 150, 250];
@@ -118,24 +118,12 @@ const GiftCards: React.FC = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-[#F8F7FB]"
+      className="space-y-8 pb-16"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Header bar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <Link to="/dashboard" className="flex items-center gap-2 text-gray-600 hover:text-violet-600 transition-colors text-sm font-medium">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
-        </Link>
-        <img src="/reflect-logo.png" alt="Reflect Medical" className="h-8 w-auto object-contain" />
-        <Link to="/login" className="text-sm text-violet-600 hover:text-violet-700 font-medium transition-colors">
-          Sign In
-        </Link>
-      </div>
-
-      <div className="max-w-2xl mx-auto space-y-8 pb-16 px-6 pt-8">
+      <div className="max-w-2xl mx-auto space-y-8">
       {/* Hero */}
       <div className="text-center py-8">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-violet-100 mb-4">
@@ -336,3 +324,4 @@ const GiftCards: React.FC = () => {
 };
 
 export default GiftCards;
+
