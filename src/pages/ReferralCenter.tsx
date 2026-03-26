@@ -7,26 +7,24 @@ import {
   Copy,
   Mail,
   MessageSquare,
-  Instagram,
-  Facebook,
-  Twitter,
   TrendingUp,
   Award,
   Clock,
   CheckCircle,
   ArrowRight,
   Sparkles,
-  Target,
   Inbox,
+  Star,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import {
   getUserReferralCode,
-  getReferrals,
   getReferralStats,
+  subscribeToReferrals,
 } from "../services/referralService";
 import type { Referral, ReferralStats } from "../services/referralService";
-import { Skeleton, SkeletonCard } from "../components/ui/Skeleton";
+import { SkeletonCard } from "../components/ui/Skeleton";
 
 const container = {
   hidden: { opacity: 0 },
@@ -39,81 +37,113 @@ const item = {
 
 const BASE_URL = "https://reflect-medical.web.app";
 
-const ReferralCenter: React.FC = () => {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"overview" | "referrals" | "share">("overview");
-  const [selectedShareMethod, setSelectedShareMethod] = useState<"link" | "sms" | "email">("link");
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+type TabId = "overview" | "referrals" | "rewards" | "share";
 
-  const [referralCode, setReferralCode] = useState<string>("");
+// ─── Status helpers ───────────────────────────────────────────────────────────
+
+function statusBadgeClass(status: Referral["status"]): string {
+  switch (status) {
+    case "pending": return "bg-yellow-50 text-yellow-700 border-yellow-200";
+    case "signed_up": return "bg-blue-50 text-blue-700 border-blue-200";
+    case "first_treatment": return "bg-orange-50 text-orange-700 border-orange-200";
+    case "completed": return "bg-green-50 text-green-700 border-green-200";
+    case "expired": return "bg-gray-50 text-gray-500 border-gray-200";
+  }
+}
+
+function statusLabel(status: Referral["status"]): string {
+  switch (status) {
+    case "pending": return "Pending";
+    case "signed_up": return "Signed Up";
+    case "first_treatment": return "Treatment Done";
+    case "completed": return "Completed";
+    case "expired": return "Expired";
+  }
+}
+
+const StatusIcon = ({ status }: { status: Referral["status"] }) => {
+  const cls = "w-4 h-4";
+  if (status === "pending") return <Clock className={`${cls} text-yellow-500`} />;
+  if (status === "signed_up") return <Users className={`${cls} text-blue-500`} />;
+  if (status === "first_treatment") return <Star className={`${cls} text-orange-500`} />;
+  if (status === "completed") return <CheckCircle className={`${cls} text-green-500`} />;
+  return <Clock className={`${cls} text-gray-400`} />;
+};
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+const StatSkeleton = () => (
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+    {[...Array(4)].map((_, i) => (
+      <SkeletonCard key={i} className="h-28" />
+    ))}
+  </div>
+);
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+const ReferralCenter: React.FC = () => {
+  const { user, profile } = useAuth();
+  const [referralCode, setReferralCode] = useState("");
+  const [stats, setStats] = useState<ReferralStats | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
-  const [stats, setStats] = useState<ReferralStats>({
-    totalReferrals: 0,
-    pendingReferrals: 0,
-    completedReferrals: 0,
-    totalCreditsEarned: 0,
-    totalEarned: 0,
-  });
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [copied, setCopied] = useState(false);
+  const [referralFilter, setReferralFilter] = useState<"all" | "pending" | "successful">("all");
 
   const referralLink = referralCode ? `${BASE_URL}/signup?ref=${referralCode}` : "";
 
   useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      setIsLoading(true);
-      try {
-        const [code, refs, s] = await Promise.all([
-          getUserReferralCode(user.uid),
-          getReferrals(user.uid),
-          getReferralStats(user.uid),
-        ]);
-        setReferralCode(code);
-        setReferrals(refs);
-        setStats(s);
-      } catch (err) {
-        console.warn("ReferralCenter load error", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    load();
+    let unsub: (() => void) | undefined;
+
+    Promise.all([
+      getUserReferralCode(user.uid, profile?.name),
+      getReferralStats(user.uid),
+    ]).then(([code, s]) => {
+      setReferralCode(code);
+      setStats(s);
+      setLoading(false);
+    });
+
+    unsub = subscribeToReferrals(user.uid, setReferrals);
+    return () => unsub?.();
   }, [user]);
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).catch(() => {});
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
+  const copyToClipboard = () => {
+    if (!referralLink) return;
+    navigator.clipboard.writeText(referralLink).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const shareViaSMS = () => {
-    const msg = `I've been going to Reflect Medical in Hawthorne NJ and it's amazing! Use my code ${referralCode} for $25 Beauty Bank credits when you sign up: ${referralLink}`;
+    const msg = `Hey! I've been going to Reflect Medical in Hawthorne NJ and it's been amazing! Use my code ${referralCode} when you sign up to earn Beauty Bank credits: ${referralLink}`;
     window.open(`sms:?body=${encodeURIComponent(msg)}`);
   };
 
   const shareViaEmail = () => {
     const subject = "You're invited to Reflect Medical!";
-    const body = `Hi!\n\nI've been going to Reflect Medical in Hawthorne NJ and the results have been amazing! I wanted to share my referral link with you.\n\nUse my code ${referralCode} when you sign up and you'll get $25 Beauty Bank credits after your first appointment!\n\nSign up here: ${referralLink}\n\nHope to see you there!`;
+    const body = `Hi!\n\nI've been going to Reflect Medical in Hawthorne NJ and the results have been incredible. I wanted to share my referral link with you!\n\nUse my code ${referralCode} when you sign up and you'll earn Beauty Bank credits after your first appointment!\n\nSign up here: ${referralLink}\n\nHope to see you there!`;
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 
-  const statusColor = (status: string) => {
-    if (status === "rewarded") return "bg-green-50 text-green-700 border-green-200";
-    if (status === "joined") return "bg-blue-50 text-blue-700 border-blue-200";
-    return "bg-yellow-50 text-yellow-700 border-yellow-200";
+  const shareViaWhatsApp = () => {
+    const msg = `Hey! I've been going to Reflect Medical in Hawthorne NJ 🌟 Use my code ${referralCode} when you sign up to earn Beauty Bank credits: ${referralLink}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
   };
 
-  const StatusIcon = ({ status }: { status: string }) => {
-    const cls = "w-4 h-4";
-    if (status === "pending") return <Clock className={`${cls} text-yellow-500`} />;
-    if (status === "joined") return <Users className={`${cls} text-blue-500`} />;
-    if (status === "rewarded") return <CheckCircle className={`${cls} text-green-500`} />;
-    return <Clock className={`${cls} text-gray-400`} />;
-  };
+  const filteredReferrals = referrals.filter((r) => {
+    if (referralFilter === "pending") return r.status === "pending" || r.status === "signed_up" || r.status === "first_treatment";
+    if (referralFilter === "successful") return r.status === "completed";
+    return true;
+  });
 
-  const tabs = [
+  const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
     { id: "overview", label: "Overview", icon: TrendingUp },
     { id: "referrals", label: "My Referrals", icon: Users },
+    { id: "rewards", label: "Rewards", icon: Gift },
     { id: "share", label: "Share & Invite", icon: Share2 },
   ];
 
@@ -136,81 +166,79 @@ const ReferralCenter: React.FC = () => {
         </motion.button>
       </div>
 
-      {/* Stats */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-          {[...Array(4)].map((_, i) => <SkeletonCard key={i} className="h-32" />)}
-        </div>
+      {/* Stats Row */}
+      {loading ? (
+        <StatSkeleton />
       ) : (
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-4 gap-5"
+          className="grid grid-cols-2 md:grid-cols-4 gap-5"
           variants={container}
           initial="hidden"
           animate="show"
         >
           <motion.div variants={item} className="p-5 bg-gradient-to-br from-violet-600 to-violet-700 text-white rounded-2xl shadow-sm">
             <div className="flex items-center gap-3">
-              <Gift className="w-10 h-10 text-white/80" />
+              <Gift className="w-9 h-9 text-white/80" />
               <div>
-                <p className="text-white/70 text-xs uppercase tracking-widest font-semibold">Credits Earned</p>
-                <p className="text-2xl font-black">${stats.totalEarned}</p>
+                <p className="text-white/70 text-xs uppercase tracking-widest font-semibold">Total Points</p>
+                <p className="text-2xl font-black">{stats?.totalPoints ?? 0}</p>
               </div>
             </div>
+            <p className="text-white/60 text-xs mt-2">${stats?.totalPoints ?? 0} Beauty Bank value</p>
           </motion.div>
 
           <motion.div variants={item} className="p-5 bg-white rounded-2xl border border-gray-200">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 bg-violet-50 rounded-xl flex items-center justify-center">
-                <Users className="w-5 h-5 text-violet-600" />
-              </div>
-              <div>
-                <p className="text-gray-500 text-xs uppercase tracking-widest font-semibold">Total</p>
-                <p className="text-2xl font-black text-gray-900">{stats.totalReferrals}</p>
-              </div>
-            </div>
-            <p className="text-xs text-violet-600">referrals sent</p>
-          </motion.div>
-
-          <motion.div variants={item} className="p-5 bg-white rounded-2xl border border-gray-200">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 bg-green-50 rounded-xl flex items-center justify-center">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
                 <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-gray-500 text-xs uppercase tracking-widest font-semibold">Rewarded</p>
-                <p className="text-2xl font-black text-gray-900">{stats.completedReferrals}</p>
+                <p className="text-gray-500 text-xs uppercase tracking-widest font-semibold">Successful</p>
+                <p className="text-2xl font-black text-gray-900">{stats?.successfulReferrals ?? 0}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-500">completed referrals</p>
+            <p className="text-xs text-gray-400">completed referrals</p>
           </motion.div>
 
           <motion.div variants={item} className="p-5 bg-white rounded-2xl border border-gray-200">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 bg-yellow-50 rounded-xl flex items-center justify-center">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center">
                 <Clock className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
                 <p className="text-gray-500 text-xs uppercase tracking-widest font-semibold">Pending</p>
-                <p className="text-2xl font-black text-gray-900">{stats.pendingReferrals}</p>
+                <p className="text-2xl font-black text-gray-900">{stats?.pendingReferrals ?? 0}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-500">awaiting completion</p>
+            <p className="text-xs text-gray-400">in progress</p>
+          </motion.div>
+
+          <motion.div variants={item} className="p-5 bg-white rounded-2xl border border-gray-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
+                <Zap className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-gray-500 text-xs uppercase tracking-widest font-semibold">Streak</p>
+                <p className="text-2xl font-black text-gray-900">{stats?.streak ?? 0}</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400">months active</p>
           </motion.div>
         </motion.div>
       )}
 
       {/* Tabs */}
-      <div className="flex bg-white rounded-xl p-1 border border-gray-200 overflow-x-auto">
+      <div className="flex bg-white rounded-xl p-1 border border-gray-200 overflow-x-auto gap-1">
         {tabs.map((tab) => (
           <motion.button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as "overview" | "referrals" | "share")}
+            onClick={() => setActiveTab(tab.id)}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg font-medium text-sm transition-colors whitespace-nowrap min-w-0 ${
               activeTab === tab.id
                 ? "bg-violet-600 text-white"
                 : "text-gray-500 hover:text-gray-700"
             }`}
-            whileHover={activeTab !== tab.id ? { scale: 1.01 } : {}}
             whileTap={{ scale: 0.97 }}
           >
             <tab.icon className="w-4 h-4 flex-shrink-0" />
@@ -221,6 +249,8 @@ const ReferralCenter: React.FC = () => {
 
       {/* Tab Content */}
       <AnimatePresence mode="wait">
+
+        {/* ── Overview ── */}
         {activeTab === "overview" && (
           <motion.div
             key="overview"
@@ -230,14 +260,73 @@ const ReferralCenter: React.FC = () => {
             className="grid grid-cols-1 lg:grid-cols-3 gap-6"
           >
             <div className="lg:col-span-2 space-y-5">
+              {/* Recent Referrals */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-lg font-semibold text-gray-900">Recent Referrals</h3>
+                  <button
+                    onClick={() => setActiveTab("referrals")}
+                    className="text-violet-600 hover:text-violet-700 font-medium text-sm flex items-center gap-1 transition-colors"
+                  >
+                    View All <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {loading ? (
+                  <div className="space-y-2">{[1, 2, 3].map(i => <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />)}</div>
+                ) : referrals.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center mb-3">
+                      <Users className="w-7 h-7 text-violet-400" />
+                    </div>
+                    <p className="text-gray-900 font-semibold">No referrals yet</p>
+                    <p className="text-gray-500 text-sm mt-1 max-w-xs">You haven't referred anyone yet. Share your link to start earning!</p>
+                    <motion.button
+                      onClick={() => setActiveTab("share")}
+                      className="mt-4 bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl font-semibold text-sm transition-colors"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      Share My Link
+                    </motion.button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {referrals.slice(0, 3).map((referral) => (
+                      <div key={referral.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="w-9 h-9 bg-violet-100 rounded-full flex items-center justify-center font-bold text-sm text-violet-700 flex-shrink-0">
+                          {(referral.referredName || "?").charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 text-sm truncate">
+                            {referral.referredName || "Pending signup"}
+                          </p>
+                          <p className="text-xs text-gray-500 capitalize">{statusLabel(referral.status)}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${statusBadgeClass(referral.status)}`}>
+                            {statusLabel(referral.status)}
+                          </span>
+                          {(referral.pointsEarned + referral.bonusPoints) > 0 && (
+                            <p className="text-xs text-violet-600 font-semibold mt-1">
+                              +{referral.pointsEarned + referral.bonusPoints} pts
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* How it works */}
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-5">How It Works</h3>
                 <div className="space-y-4">
                   {[
-                    { icon: Share2, title: "Share Your Link", desc: "Send your unique referral link to friends" },
-                    { icon: Users, title: "Friend Signs Up", desc: "They create an account using your code" },
-                    { icon: Gift, title: "Both Earn $25", desc: "You and your friend each get $25 Beauty Bank credits after their first appointment" },
+                    { icon: Share2, title: "Share Your Link", desc: "Send your unique referral link to friends and family" },
+                    { icon: Users, title: "Friend Signs Up", desc: "They create an account using your code — you earn 100 pts ($100 Beauty Bank)" },
+                    { icon: Gift, title: "Earn More as They Progress", desc: "First treatment: +50 pts. Membership: +50 pts more. Total: 200 pts = $200 Beauty Bank!" },
                   ].map(({ icon: Icon, title, desc }) => (
                     <div key={title} className="flex items-start gap-3">
                       <div className="w-9 h-9 bg-violet-50 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -251,57 +340,16 @@ const ReferralCenter: React.FC = () => {
                   ))}
                 </div>
               </div>
-
-              {/* Recent Referrals */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                <div className="flex items-center justify-between mb-5">
-                  <h3 className="text-lg font-semibold text-gray-900">Recent Referrals</h3>
-                  <button
-                    onClick={() => setActiveTab("referrals")}
-                    className="text-violet-600 hover:text-violet-700 font-medium text-sm flex items-center gap-1 transition-colors"
-                  >
-                    View All <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {isLoading ? (
-                  <div className="space-y-2">{[1, 2].map(i => <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />)}</div>
-                ) : referrals.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-10 text-center">
-                    <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
-                      <Inbox className="w-6 h-6 text-gray-400" />
-                    </div>
-                    <p className="text-gray-900 font-semibold">No referrals yet</p>
-                    <p className="text-gray-500 text-sm mt-1">Share your link to start earning rewards.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {referrals.slice(0, 4).map((referral) => (
-                      <div key={referral.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <StatusIcon status={referral.status} />
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-900 text-sm">{referral.refereeName || referral.refereeEmail}</p>
-                          <p className="text-xs text-gray-500 capitalize">{referral.status}</p>
-                        </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${statusColor(referral.status)}`}>
-                          {referral.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
 
-            {/* Right sidebar */}
+            {/* Sidebar */}
             <div className="space-y-5">
-              {/* Quick Share */}
               <div className="bg-gradient-to-br from-violet-600 to-violet-700 rounded-2xl p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <Share2 className="w-5 h-5 text-white" />
                   <h3 className="text-base font-bold text-white">Your Referral Link</h3>
                 </div>
-                <p className="text-white/80 mb-4 text-sm">Earn $25 Beauty Bank for each friend who joins</p>
+                <p className="text-white/80 mb-4 text-sm">Earn points for every friend who joins</p>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -310,21 +358,20 @@ const ReferralCenter: React.FC = () => {
                     className="flex-1 px-3 py-2 rounded-xl text-white text-xs bg-white/15 border border-white/20 focus:outline-none truncate"
                   />
                   <motion.button
-                    onClick={() => copyToClipboard(referralLink)}
+                    onClick={copyToClipboard}
                     className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-white transition-colors"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    {copiedLink ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   </motion.button>
                 </div>
               </div>
 
-              {/* Your Code */}
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
                 <h3 className="text-base font-semibold text-gray-900 mb-3">Your Referral Code</h3>
                 <div className="bg-violet-50 rounded-xl border border-violet-200 p-3 text-center">
-                  {isLoading ? (
+                  {loading ? (
                     <div className="h-7 w-32 bg-violet-100 rounded animate-pulse mx-auto" />
                   ) : (
                     <span className="font-mono font-bold text-violet-700 text-lg">{referralCode}</span>
@@ -336,6 +383,7 @@ const ReferralCenter: React.FC = () => {
           </motion.div>
         )}
 
+        {/* ── My Referrals ── */}
         {activeTab === "referrals" && (
           <motion.div
             key="referrals"
@@ -344,23 +392,48 @@ const ReferralCenter: React.FC = () => {
             exit={{ opacity: 0 }}
             className="space-y-5"
           >
-            {isLoading ? (
-              <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />)}</div>
-            ) : referrals.length === 0 ? (
+            {/* Filter tabs */}
+            <div className="flex gap-2">
+              {(["all", "pending", "successful"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setReferralFilter(f)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${
+                    referralFilter === f
+                      ? "bg-violet-600 text-white"
+                      : "bg-white border border-gray-200 text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+
+            {loading ? (
+              <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />)}</div>
+            ) : filteredReferrals.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-                  <Users className="w-8 h-8 text-gray-400" />
+                  <Inbox className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="text-gray-900 font-bold text-lg">No referrals yet</h3>
-                <p className="text-gray-500 text-sm mt-1 max-w-xs">Share your link and bring friends to Reflect.</p>
-                <motion.button
-                  onClick={() => setActiveTab("share")}
-                  className="mt-6 bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-colors"
-                  whileHover={{ scale: 1.03, y: -1 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  Share My Link
-                </motion.button>
+                <h3 className="text-gray-900 font-bold text-lg">
+                  {referralFilter === "all" ? "No referrals yet" : `No ${referralFilter} referrals`}
+                </h3>
+                <p className="text-gray-500 text-sm mt-1 max-w-xs">
+                  {referralFilter === "all"
+                    ? "Share your link and bring friends to Reflect."
+                    : `You don't have any ${referralFilter} referrals right now.`}
+                </p>
+                {referralFilter === "all" && (
+                  <motion.button
+                    onClick={() => setActiveTab("share")}
+                    className="mt-6 bg-violet-600 hover:bg-violet-700 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-colors"
+                    whileHover={{ scale: 1.03, y: -1 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    Share My Link
+                  </motion.button>
+                )}
               </div>
             ) : (
               <motion.div
@@ -369,7 +442,7 @@ const ReferralCenter: React.FC = () => {
                 initial="hidden"
                 animate="show"
               >
-                {referrals.map((referral) => (
+                {filteredReferrals.map((referral) => (
                   <motion.div
                     key={referral.id}
                     variants={item}
@@ -377,32 +450,53 @@ const ReferralCenter: React.FC = () => {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 bg-violet-50 rounded-xl flex items-center justify-center font-bold text-sm text-violet-700">
-                          {(referral.refereeName || referral.refereeEmail || "?").charAt(0).toUpperCase()}
+                        <div className="w-11 h-11 bg-violet-100 rounded-full flex items-center justify-center font-bold text-sm text-violet-700 flex-shrink-0">
+                          {(referral.referredName || referral.referredEmail || "?").charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900 text-sm">{referral.refereeName || "Friend"}</h4>
-                          <p className="text-xs text-gray-500">{referral.refereeEmail}</p>
+                          <h4 className="font-semibold text-gray-900 text-sm">
+                            {referral.referredName || "Awaiting signup..."}
+                          </h4>
+                          <p className="text-xs text-gray-500">
+                            {referral.referredEmail || "—"}
+                          </p>
                         </div>
                       </div>
                       <StatusIcon status={referral.status} />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 border-t border-gray-100 pt-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-500">Status</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${statusColor(referral.status)}`}>
-                          {referral.status}
+                        <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${statusBadgeClass(referral.status)}`}>
+                          {statusLabel(referral.status)}
+                        </span>
+                      </div>
+                      {referral.membershipTier && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">Membership</span>
+                          <span className="text-sm font-semibold text-violet-700">{referral.membershipTier}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-500">Points Earned</span>
+                        <span className="font-semibold text-gray-900 text-sm">
+                          {referral.pointsEarned + referral.bonusPoints} pts
+                          {referral.bonusPoints > 0 && (
+                            <span className="text-xs text-violet-500 ml-1">(+{referral.bonusPoints} bonus)</span>
+                          )}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">Credits Earned</span>
-                        <span className="font-semibold text-gray-900 text-sm">${referral.creditsEarned}</span>
+                        <span className="text-sm text-gray-500">Date Sent</span>
+                        <span className="text-sm text-gray-900">{referral.createdAt.toLocaleDateString()}</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">Sent</span>
-                        <span className="text-sm text-gray-900">{new Date(referral.createdAt).toLocaleDateString()}</span>
-                      </div>
+                      {referral.completedAt && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">Completed</span>
+                          <span className="text-sm text-gray-900">{referral.completedAt.toLocaleDateString()}</span>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 ))}
@@ -411,6 +505,112 @@ const ReferralCenter: React.FC = () => {
           </motion.div>
         )}
 
+        {/* ── Rewards ── */}
+        {activeTab === "rewards" && (
+          <motion.div
+            key="rewards"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          >
+            <div className="space-y-5">
+              <h3 className="text-lg font-semibold text-gray-900">How Rewards Work</h3>
+
+              <div className="space-y-4">
+                {[
+                  {
+                    step: 1,
+                    icon: Users,
+                    title: "Friend Signs Up",
+                    desc: "Friend signs up with your code",
+                    reward: "You earn 100 pts ($100 Beauty Bank)",
+                    color: "bg-violet-50",
+                    iconColor: "text-violet-600",
+                  },
+                  {
+                    step: 2,
+                    icon: Star,
+                    title: "First Treatment",
+                    desc: "Friend books their first treatment",
+                    reward: "+50 pts bonus ($50 more)",
+                    color: "bg-orange-50",
+                    iconColor: "text-orange-600",
+                  },
+                  {
+                    step: 3,
+                    icon: Award,
+                    title: "Becomes a Member",
+                    desc: "Friend activates a membership",
+                    reward: "+50 pts more = 200 pts total ($200 Beauty Bank!)",
+                    color: "bg-green-50",
+                    iconColor: "text-green-600",
+                  },
+                ].map(({ step, icon: Icon, title, desc, reward, color, iconColor }) => (
+                  <div key={step} className="bg-white rounded-2xl border border-gray-200 p-5 flex gap-4">
+                    <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                      <Icon className={`w-6 h-6 ${iconColor}`} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="w-5 h-5 bg-gray-900 text-white rounded-full text-xs font-bold flex items-center justify-center">{step}</span>
+                        <h4 className="font-semibold text-gray-900 text-sm">{title}</h4>
+                      </div>
+                      <p className="text-xs text-gray-500 mb-1">{desc}</p>
+                      <p className="text-xs font-semibold text-violet-600">{reward}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              {/* Current balance */}
+              <div className="bg-gradient-to-br from-violet-600 to-violet-700 rounded-2xl p-6 text-white">
+                <div className="flex items-center gap-3 mb-4">
+                  <Gift className="w-6 h-6 text-white/80" />
+                  <h3 className="text-lg font-bold">Your Points Balance</h3>
+                </div>
+                {loading ? (
+                  <div className="h-10 bg-white/20 rounded-xl animate-pulse" />
+                ) : (
+                  <>
+                    <p className="text-4xl font-black mb-1">{stats?.totalPoints ?? 0} pts</p>
+                    <p className="text-white/70 text-sm">${stats?.totalPoints ?? 0} Beauty Bank credit value</p>
+                  </>
+                )}
+              </div>
+
+              {/* Conversion rate */}
+              {stats && stats.successfulReferrals + stats.pendingReferrals > 0 && (
+                <div className="bg-white rounded-2xl border border-gray-200 p-5">
+                  <h4 className="font-semibold text-gray-900 mb-3">Your Performance</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Conversion Rate</span>
+                      <span className="font-semibold text-gray-900 text-sm">{stats.conversionRate}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Lifetime Value</span>
+                      <span className="font-semibold text-gray-900 text-sm">${stats.lifetimeValue} Beauty Bank</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Redeem */}
+              <div className="bg-white rounded-2xl border border-gray-200 p-5">
+                <h4 className="font-semibold text-gray-900 mb-2">Redeem Points</h4>
+                <p className="text-sm text-gray-500 mb-4">Points are automatically applied to your Beauty Bank account as you earn them. Visit the front desk or ask staff to redeem your Beauty Bank balance toward services.</p>
+                <div className="bg-violet-50 rounded-xl p-3 border border-violet-100 text-center">
+                  <p className="text-xs text-violet-600 font-medium">1 point = $1 Beauty Bank credit</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Share & Invite ── */}
         {activeTab === "share" && (
           <motion.div
             key="share"
@@ -420,113 +620,103 @@ const ReferralCenter: React.FC = () => {
             className="grid grid-cols-1 lg:grid-cols-2 gap-6"
           >
             <div className="space-y-5">
-              <h3 className="text-lg font-semibold text-gray-900">Share Your Referral Link</h3>
+              {/* Code display */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Referral Code</h3>
+                <div className="bg-violet-50 rounded-xl border border-violet-200 p-4 text-center mb-4">
+                  {loading ? (
+                    <div className="h-8 w-40 bg-violet-100 rounded animate-pulse mx-auto" />
+                  ) : (
+                    <span className="font-mono font-black text-violet-700 text-2xl tracking-wider">{referralCode}</span>
+                  )}
+                </div>
 
-              {/* Method Selection */}
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { id: "link", label: "Copy Link", icon: Copy },
-                  { id: "sms", label: "SMS", icon: MessageSquare },
-                  { id: "email", label: "Email", icon: Mail },
-                ].map((method) => (
+                <h4 className="font-semibold text-gray-900 mb-2 text-sm">Referral Link</h4>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={referralLink}
+                    readOnly
+                    className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none bg-gray-50 text-gray-900 text-sm"
+                  />
                   <motion.button
-                    key={method.id}
-                    onClick={() => setSelectedShareMethod(method.id as "link" | "sms" | "email")}
-                    className={`p-4 rounded-xl border transition-colors ${
-                      selectedShareMethod === method.id
-                        ? "border-violet-300 bg-violet-50"
-                        : "border-gray-200 bg-white hover:border-gray-300"
-                    }`}
+                    onClick={copyToClipboard}
+                    className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-semibold transition-colors flex items-center gap-2 text-sm"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
                   >
-                    <method.icon className={`w-5 h-5 mx-auto mb-2 ${selectedShareMethod === method.id ? "text-violet-600" : "text-gray-500"}`} />
-                    <p className={`text-xs font-medium ${selectedShareMethod === method.id ? "text-violet-600" : "text-gray-500"}`}>{method.label}</p>
+                    {copied ? <><CheckCircle className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy</>}
                   </motion.button>
-                ))}
+                </div>
               </div>
 
-              {/* Share Actions */}
+              {/* Share buttons */}
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                {selectedShareMethod === "link" && (
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-4">Your Referral Link</h4>
-                    <div className="flex gap-2 mb-3">
-                      <input
-                        type="text"
-                        value={referralLink}
-                        readOnly
-                        className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none bg-gray-50 text-gray-900 text-sm"
-                      />
-                      <motion.button
-                        onClick={() => copyToClipboard(referralLink)}
-                        className="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-semibold transition-colors flex items-center gap-2 text-sm"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.97 }}
-                      >
-                        {copiedLink ? <><CheckCircle className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy</>}
-                      </motion.button>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Share Via</h3>
+                <div className="space-y-3">
+                  <motion.button
+                    onClick={shareViaSMS}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <MessageSquare className="w-5 h-5 text-green-600" />
                     </div>
-                    <p className="text-sm text-gray-500">Share this link with friends to earn $25 Beauty Bank credits!</p>
-                  </div>
-                )}
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">Share via SMS</p>
+                      <p className="text-xs text-gray-500">Send a text message to a friend</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-gray-400 ml-auto" />
+                  </motion.button>
 
-                {selectedShareMethod === "sms" && (
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900">Share via Text</h4>
-                    <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 leading-relaxed">
-                      I've been going to Reflect Medical in Hawthorne NJ and it's amazing! Use my code{" "}
-                      <span className="font-bold text-violet-700">{referralCode}</span> for $25 Beauty Bank credits when you sign up:{" "}
-                      <span className="text-violet-600">{referralLink}</span>
+                  <motion.button
+                    onClick={shareViaEmail}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-5 h-5 text-blue-600" />
                     </div>
-                    <motion.button
-                      onClick={shareViaSMS}
-                      className="w-full bg-violet-600 hover:bg-violet-700 text-white py-2.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm"
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      <MessageSquare className="w-4 h-4" /> Open Messages
-                    </motion.button>
-                  </div>
-                )}
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">Share via Email</p>
+                      <p className="text-xs text-gray-500">Send a personalized email invite</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-gray-400 ml-auto" />
+                  </motion.button>
 
-                {selectedShareMethod === "email" && (
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-900">Share via Email</h4>
-                    <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 space-y-2">
-                      <p><span className="font-semibold">Subject:</span> You're invited to Reflect Medical!</p>
-                      <p className="leading-relaxed">
-                        I've been going to Reflect Medical in Hawthorne NJ and it's amazing! Use my code{" "}
-                        <span className="font-bold text-violet-700">{referralCode}</span> when you sign up for $25 in Beauty Bank credits.
-                      </p>
+                  <motion.button
+                    onClick={shareViaWhatsApp}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Share2 className="w-5 h-5 text-emerald-600" />
                     </div>
-                    <motion.button
-                      onClick={shareViaEmail}
-                      className="w-full bg-violet-600 hover:bg-violet-700 text-white py-2.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm"
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      <Mail className="w-4 h-4" /> Open Email Client
-                    </motion.button>
-                  </div>
-                )}
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">Share via WhatsApp</p>
+                      <p className="text-xs text-gray-500">Send via WhatsApp messenger</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-gray-400 ml-auto" />
+                  </motion.button>
+                </div>
               </div>
             </div>
 
             {/* Tips */}
             <div className="space-y-5">
-              <h3 className="text-lg font-semibold text-gray-900">Referral Tips</h3>
-
               <div className="bg-gradient-to-br from-violet-600 to-violet-700 rounded-2xl p-5">
                 <div className="flex items-center gap-3 mb-4">
                   <Sparkles className="w-5 h-5 text-white" />
-                  <h4 className="text-base font-bold text-white">Maximize Your Earnings</h4>
+                  <h4 className="text-base font-bold text-white">Referral Tips</h4>
                 </div>
                 <div className="space-y-3">
                   {[
-                    "Share with friends interested in skincare and aesthetic treatments",
+                    "Share with friends who are interested in skincare, aesthetic treatments, or self-care",
                     "Explain the membership savings — they can save hundreds on their first treatment",
-                    "Share your own results and experiences to build trust",
+                    "Share your own results and experiences to build trust and excitement",
                   ].map((tip, i) => (
                     <div key={i} className="flex items-start gap-3">
                       <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5">{i + 1}</div>
@@ -539,18 +729,19 @@ const ReferralCenter: React.FC = () => {
               <div className="bg-white rounded-2xl border border-green-200 shadow-sm p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <Award className="w-5 h-5 text-green-600" />
-                  <h4 className="font-semibold text-gray-900">Reward Details</h4>
+                  <h4 className="font-semibold text-gray-900">Reward Summary</h4>
                 </div>
                 <div className="space-y-2.5">
                   {[
-                    { label: "You earn per referral", value: "$25 Beauty Bank" },
-                    { label: "Your friend earns", value: "$25 Beauty Bank" },
-                    { label: "When credited", value: "After friend's 1st appt" },
+                    { label: "Friend signs up", value: "100 pts = $100 Beauty Bank" },
+                    { label: "Friend's first treatment", value: "+50 pts = $50 more" },
+                    { label: "Friend becomes member", value: "+50 pts = $50 more" },
+                    { label: "Maximum per referral", value: "200 pts = $200 Beauty Bank" },
                     { label: "No limit on referrals", value: "✓ Unlimited" },
                   ].map(({ label, value }) => (
                     <div key={label} className="flex items-center justify-between">
                       <span className="text-sm text-gray-500">{label}</span>
-                      <span className="font-semibold text-green-700 text-sm">{value}</span>
+                      <span className="font-semibold text-green-700 text-sm text-right">{value}</span>
                     </div>
                   ))}
                 </div>

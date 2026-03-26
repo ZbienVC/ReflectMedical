@@ -74,7 +74,8 @@ const SignUp: React.FC = () => {
         const auth = getAuth();
         const currentUser = auth.currentUser;
         if (currentUser) {
-          await applyReferralCode(referralCode, currentUser.uid).catch(() => {});
+          const fullName = `${firstName} ${lastName}`.trim();
+          await applyReferralCode(referralCode, currentUser.uid, email, fullName).catch(() => {});
         }
         localStorage.removeItem("referralCode");
       }
