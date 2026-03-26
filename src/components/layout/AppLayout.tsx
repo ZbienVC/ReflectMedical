@@ -56,7 +56,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <aside className="hidden md:flex flex-col w-64 border-r fixed h-full z-40 transition-colors duration-200" style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
         <div className="p-5 flex items-center">
           <img
-            src="/reflect-logo.jpg"
+            src="/reflect-logo.png"
             alt="Reflect Medical & Cosmetic Center"
             className="h-12 w-auto object-contain"
           />
@@ -110,7 +110,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <div className="md:hidden fixed top-0 w-full h-16 z-50 flex items-center justify-between px-4 transition-colors duration-200" style={{ backgroundColor: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
         <div className="flex items-center gap-2">
           <img
-            src="/reflect-logo.jpg"
+            src="/reflect-logo.png"
             alt="Reflect Medical"
             className="h-8 w-auto object-contain"
           />
@@ -171,3 +171,4 @@ export default function AppLayout({ children }: AppLayoutProps) {
     </div>
   );
 }
+

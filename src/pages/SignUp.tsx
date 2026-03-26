@@ -74,7 +74,7 @@ const SignUp: React.FC = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <img
-            src="/reflect-logo.jpg"
+            src="/reflect-logo.png"
             alt="Reflect Medical & Cosmetic Center"
             className="h-16 w-auto object-contain mx-auto mb-4"
           />
@@ -194,3 +194,4 @@ const SignUp: React.FC = () => {
 };
 
 export default SignUp;
+

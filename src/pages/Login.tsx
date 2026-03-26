@@ -86,10 +86,9 @@ const Login: React.FC = () => {
           transition={{ delay: 0.3, duration: 0.6 }}
         >
           <img
-            src="/reflect-logo.jpg"
+            src="/reflect-logo.png"
             alt="Reflect Medical & Cosmetic Center"
-            className="h-16 w-auto object-contain"
-            style={{ mixBlendMode: "screen", filter: "brightness(1.1) contrast(1.1)" }}
+            className="h-24 w-auto object-contain"
           />
         </motion.div>
 
@@ -165,7 +164,7 @@ const Login: React.FC = () => {
             transition={{ delay: 0.2 }}
           >
             <img
-              src="/reflect-logo.jpg"
+              src="/reflect-logo.png"
               alt="Reflect Medical"
               className="h-14 w-auto object-contain mx-auto"
             />
@@ -287,3 +286,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+
