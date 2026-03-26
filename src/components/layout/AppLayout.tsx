@@ -53,7 +53,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-[#F8F7FB] dark:bg-[#0B0B0F] text-gray-900 dark:text-gray-100 flex">
       {/* Sidebar (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 fixed h-full z-40">
+      <aside className="hidden md:flex flex-col w-64 border-r fixed h-full z-40 transition-colors duration-200" style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
         <div className="p-6 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center shadow-sm">
             <Sparkles className="w-4 h-4 text-white" />
@@ -161,7 +161,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 md:ml-64 min-h-screen pt-16 md:pt-0">
+      <main className="flex-1 md:ml-64 min-h-screen pt-16 md:pt-0" style={{ backgroundColor: 'var(--bg)' }}>
         <div className="max-w-7xl mx-auto px-6 py-8">
           {children}
         </div>
