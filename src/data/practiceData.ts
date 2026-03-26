@@ -302,7 +302,7 @@ export const realReviews = [
     rating: 5,
     date: "2024-03-08", 
     treatment: "Chemical Peel",
-    text: "The VI Peel transformed my skin! Dr. Patel explained everything thoroughly and the results exceeded my expectations. The membership Beauty Bucks made it so affordable.",
+    text: "The VI Peel transformed my skin! Dr. Patel explained everything thoroughly and the results exceeded my expectations. The membership Skin Bank made it so affordable.",
     verified: true,
     membershipTier: "Evolve"
   },
@@ -387,3 +387,4 @@ export const membershipTiers = [
     color: "from-yellow-500 to-yellow-600"
   }
 ];
+

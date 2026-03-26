@@ -37,7 +37,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Membership", href: "/membership", icon: Sparkles },
-    { name: "Credits", href: "/credits", icon: CreditCard },
+    { name: "Skin Bank", href: "/credits", icon: CreditCard },
     { name: "Treatments", href: "/treatments", icon: Stethoscope },
     { name: "Referrals", href: "/referrals", icon: Users },
     { name: "Appointments", href: "/appointments", icon: Calendar },
@@ -171,4 +171,5 @@ export default function AppLayout({ children }: AppLayoutProps) {
     </div>
   );
 }
+
 

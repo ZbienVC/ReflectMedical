@@ -58,8 +58,8 @@ const Dashboard: React.FC = () => {
   const quickActions = [
     { label: "Book Appointment", desc: "Schedule your next visit", icon: <Calendar className="w-5 h-5" />, href: "/appointments" },
     { label: "View Membership", desc: "Manage your plan", icon: <Sparkles className="w-5 h-5" />, href: "/membership" },
-    { label: "Your Credits", desc: "View balance & history", icon: <CreditCard className="w-5 h-5" />, href: "/credits" },
-    { label: "Refer a Friend", desc: "Earn beauty credits", icon: <Gift className="w-5 h-5" />, href: "/referrals" },
+    { label: "Your Skin Bank", desc: "View balance & history", icon: <CreditCard className="w-5 h-5" />, href: "/credits" },
+    { label: "Refer a Friend", desc: "Earn Skin Bank credits", icon: <Gift className="w-5 h-5" />, href: "/referrals" },
   ];
 
   return (
@@ -74,7 +74,7 @@ const Dashboard: React.FC = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back, {firstName} </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
-              You have <span className="font-semibold text-violet-600 dark:text-violet-400">${liveBalance.toLocaleString()}</span> in credits available
+              You have <span className="font-semibold text-violet-600 dark:text-violet-400">${liveBalance.toLocaleString()}</span> in Skin Bank available
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -98,7 +98,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           {
-            label: "Credits Available",
+            label: "Skin Bank Balance",
             value: `$${liveBalance.toLocaleString()}`,
             icon: <CreditCard className="w-5 h-5 text-violet-600 dark:text-violet-400" />,
             bg: "bg-violet-50 dark:bg-violet-900/20",
@@ -206,3 +206,4 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+

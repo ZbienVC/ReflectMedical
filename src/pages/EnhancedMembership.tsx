@@ -7,13 +7,14 @@ import { MembershipTier } from "../types";
 import { formatCurrency } from "../lib/utils";
 import { addMonthlyCredits } from "../services/membershipService";
 import { membershipTiers, realStats, realReviews, practiceInfo } from "../data/practiceData";
-import { 
-  Sparkles, 
-  TrendingUp, 
-  Users, 
-  Award, 
-  Star, 
-  ArrowRight, 
+import { TREATMENTS, MEMBERSHIP_PLANS, getMemberPrice } from "../data/skinBank";
+import {
+  Sparkles,
+  TrendingUp,
+  Users,
+  Award,
+  Star,
+  ArrowRight,
   CheckCircle2,
   Crown,
   Zap,
@@ -31,15 +32,43 @@ const EnhancedMembership: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isAnnual, setIsAnnual] = useState(true);
   const [hoveredTier, setHoveredTier] = useState<string | null>(null);
-  
+
   const { scrollYProgress } = useScroll();
   const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
   const headerOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0.8]);
 
+  // Derive dynamic benefits from skinBank data
+  const botox = TREATMENTS.find((t) => t.id === "botox")!;
+  const juvederm = TREATMENTS.find((t) => t.id === "juvederm")!;
+
+  const getTierFeatures = (tierId: "core" | "evolve" | "transform", skinBankAmount: number): string[] => {
+    const botoxPrice = getMemberPrice(botox, tierId);
+    const juvedermPrice = getMemberPrice(juvederm, tierId);
+    const juvedermSavings = juvederm.basePrice - juvedermPrice;
+    const features: string[] = [
+      `Botox from $${botoxPrice}/unit (reg. $${botox.basePrice})`,
+    ];
+    if (juvedermSavings > 0) {
+      features.push(`Save $${juvedermSavings} per syringe on fillers`);
+    }
+    features.push(`$${skinBankAmount} monthly Skin Bank value`);
+    if (tierId === "core") {
+      features.push("10% off chemical peels & laser");
+    } else if (tierId === "evolve") {
+      features.push("Priority booking access");
+      features.push("Up to 15% off medical devices");
+    } else {
+      features.push("Priority booking + VIP access");
+      features.push("Up to 20% off all services");
+      features.push("GLP-1 weight management savings");
+    }
+    return features;
+  };
+
   const handleJoin = (tier: any) => {
     const message = `I'm interested in joining the ${tier.name} membership tier at $${tier.monthlyPrice}/month. Can you help me get started?`;
     const phoneUrl = `tel:${practiceInfo.phone}`;
-    
+
     if (window.confirm(`Ready to join the ${tier.name} membership?\n\nClick OK to call ${practiceInfo.phone} and speak with our membership team.`)) {
       window.location.href = phoneUrl;
     }
@@ -48,17 +77,17 @@ const EnhancedMembership: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/5 via-surface to-secondary/5 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="text-center space-y-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <motion.div 
+          <motion.div
             className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full mx-auto"
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           />
-          <motion.p 
+          <motion.p
             className="text-on-surface-variant font-label text-lg"
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 1.5, repeat: Infinity }}
@@ -75,7 +104,7 @@ const EnhancedMembership: React.FC = () => {
       {/* Background System */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-[#F7F6FB] via-white to-[#B57EDC]/5" />
-        <motion.div 
+        <motion.div
           className="absolute inset-0 opacity-20"
           style={{ y: backgroundY }}
         >
@@ -98,8 +127,8 @@ const EnhancedMembership: React.FC = () => {
               <Badge variant="success" size="lg" className="font-bold shadow-lg px-6 py-2 bg-[#B57EDC]/10 text-[#B57EDC] border border-[#B57EDC]/20">
                 Premium Medical Aesthetics
               </Badge>
-              
-              <motion.h1 
+
+              <motion.h1
                 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#1F2937] leading-tight"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -108,25 +137,25 @@ const EnhancedMembership: React.FC = () => {
                 Unlock Your Best Self with{" "}
                 <span className="text-[#B57EDC]">Premium Care</span>
               </motion.h1>
-              
-              <motion.p 
+
+              <motion.p
                 className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2, ease: "easeInOut" }}
               >
-                Join thousands who've discovered the confidence that comes from looking and feeling your absolute best. 
+                Join thousands who've discovered the confidence that comes from looking and feeling your absolute best.
                 Our membership program puts premium aesthetic treatments within reach.
               </motion.p>
 
               {/* Pricing Toggle */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.3, ease: "easeInOut" }}
                 className="flex items-center justify-center gap-4 p-3 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/60 shadow-soft max-w-lg mx-auto"
               >
-                <button 
+                <button
                   type="button"
                   className={`px-4 py-2 text-base font-semibold transition-all duration-200 ease-in-out rounded-xl ${
                     !isAnnual ? 'text-[#B57EDC] bg-white shadow-lg' : 'text-[#6B7280] hover:bg-gray-50'
@@ -135,8 +164,8 @@ const EnhancedMembership: React.FC = () => {
                 >
                   Monthly
                 </button>
-                
-                <button 
+
+                <button
                   type="button"
                   onClick={() => setIsAnnual(!isAnnual)}
                   className={`relative w-16 h-8 rounded-full p-1 flex items-center transition-all duration-200 shadow-lg ${
@@ -147,9 +176,9 @@ const EnhancedMembership: React.FC = () => {
                     isAnnual ? 'translate-x-8' : 'translate-x-0'
                   }`} />
                 </button>
-              
+
                 <div className="flex items-center gap-3">
-                  <button 
+                  <button
                     type="button"
                     className={`px-4 py-2 text-base font-semibold transition-all duration-200 rounded-xl ${
                       isAnnual ? 'text-[#B57EDC] bg-white shadow-lg' : 'text-[#6B7280] hover:bg-gray-50'
@@ -224,7 +253,7 @@ const EnhancedMembership: React.FC = () => {
                   image: "SJ"
                 },
                 {
-                  name: "Michael Chen", 
+                  name: "Michael Chen",
                   rating: 5,
                   text: "I love the priority booking and member pricing. I've saved over $300 this month alone, and the results speak for themselves.",
                   treatment: "Botox",
@@ -282,7 +311,7 @@ const EnhancedMembership: React.FC = () => {
                 Choose Your Membership
               </h2>
               <p className="text-base text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                Every membership includes exclusive member pricing and monthly credits toward any treatment.
+                Every membership includes exclusive member pricing and Monthly Skin Bank toward any treatment.
               </p>
             </div>
 
@@ -315,93 +344,49 @@ const EnhancedMembership: React.FC = () => {
 
             {/* Cards Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              {[
-                {
-                  id: "core",
-                  name: "Core",
-                  description: "Essential maintenance for lasting glow.",
-                  monthlyPrice: 84,
-                  credits: 99,
-                  badge: null,
-                  featured: false,
-                  features: [
-                    "Botox: $12/unit (reg. $15)",
-                    "10% Off All Skincare & Fillers",
-                    "Priority Booking Window",
-                    "Monthly Skin Analysis",
-                  ]
-                },
-                {
-                  id: "evolve",
-                  name: "Evolve",
-                  description: "Enhanced rejuvenation and expert care.",
-                  monthlyPrice: 124,
-                  credits: 150,
-                  badge: "Most Popular",
-                  featured: true,
-                  features: [
-                    "Botox: $10/unit (reg. $15)",
-                    "15% Off All Skincare & Fillers",
-                    "Complimentary Monthly B12 Shot",
-                    "Early Access to Seasonal Events",
-                    "Dedicated Aesthetician",
-                  ]
-                },
-                {
-                  id: "transform",
-                  name: "Transform",
-                  description: "The ultimate aesthetic concierge experience.",
-                  monthlyPrice: 200,
-                  credits: 250,
-                  badge: "Premium",
-                  featured: false,
-                  features: [
-                    "Botox: $8/unit (reg. $15)",
-                    "20% Off All Medical Services",
-                    "Unlimited Hydrafacial Upgrades",
-                    "VIP Concierge Support Line",
-                    "Quarterly 3D Skin Mapping",
-                  ]
-                }
-              ].map((tier, index) => {
-                const isCurrent = profile?.membershipTierId === tier.id;
-                const displayPrice = isAnnual ? Math.round(tier.monthlyPrice * 0.85) : tier.monthlyPrice;
-                const annualTotal = Math.round(tier.monthlyPrice * 12 * 0.85);
+              {MEMBERSHIP_PLANS.map((tierPlan, index) => {
+                const tierId = tierPlan.id;
+                const tierFeatures = getTierFeatures(tierId, tierPlan.monthlyCredits);
+                const isCurrent = profile?.membershipTierId === tierId;
+                const displayPrice = isAnnual ? Math.round(tierPlan.monthlyPrice * 0.85) : tierPlan.monthlyPrice;
+                const annualTotal = Math.round(tierPlan.monthlyPrice * 12 * 0.85);
+                const isFeatured = tierPlan.highlighted ?? false;
+                const badge = tierId === "evolve" ? "Most Popular" : tierId === "transform" ? "Premium" : null;
 
                 return (
                   <motion.div
-                    key={tier.id}
+                    key={tierId}
                     initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 + index * 0.1, ease: "easeOut" }}
                     whileHover={{ y: -4, boxShadow: "0 12px 32px rgba(124,58,237,0.12)" }}
                     className={`bg-white rounded-2xl p-6 flex flex-col ${
-                      tier.featured
+                      isFeatured
                         ? "border border-violet-300 shadow-md"
                         : "border border-gray-200 shadow-sm"
                     }`}
                   >
                     {/* 1. Badge row */}
                     <div className="h-7 mb-4 flex items-center">
-                      {tier.badge && (
+                      {badge && (
                         <span className="bg-violet-600 text-white rounded-full text-xs px-3 py-1 font-semibold">
-                          {tier.badge}
+                          {badge}
                         </span>
                       )}
                     </div>
 
                     {/* 2. Icon */}
                     <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center mb-4">
-                      {tier.name === "Core" && <Shield className="w-6 h-6 text-violet-600" />}
-                      {tier.name === "Evolve" && <Sparkles className="w-6 h-6 text-violet-600" />}
-                      {tier.name === "Transform" && <Crown className="w-6 h-6 text-violet-600" />}
+                      {tierId === "core" && <Shield className="w-6 h-6 text-violet-600" />}
+                      {tierId === "evolve" && <Sparkles className="w-6 h-6 text-violet-600" />}
+                      {tierId === "transform" && <Crown className="w-6 h-6 text-violet-600" />}
                     </div>
 
                     {/* 3. Tier name */}
-                    <h3 className="text-xl font-bold text-gray-900">{tier.name}</h3>
+                    <h3 className="text-xl font-bold text-gray-900">{tierPlan.name}</h3>
 
                     {/* 4. Description */}
-                    <p className="text-sm text-gray-500 mt-1 mb-5">{tier.description}</p>
+                    <p className="text-sm text-gray-500 mt-1 mb-5">{tierPlan.description}</p>
 
                     {/* 5. Price */}
                     <div className="flex items-baseline gap-1 mb-1">
@@ -413,16 +398,16 @@ const EnhancedMembership: React.FC = () => {
                     <div className="h-5 mb-5">
                       {isAnnual && (
                         <p className="text-xs text-violet-600 font-medium">
-                          Billed ${annualTotal}/year — you save ${tier.monthlyPrice * 12 - annualTotal}
+                          Billed ${annualTotal}/year - you save ${tierPlan.monthlyPrice * 12 - annualTotal}
                         </p>
                       )}
                     </div>
 
-                    {/* 7. Credits box */}
+                    {/* 7. Skin Bank box */}
                     <div className="bg-violet-50 rounded-xl p-4 text-center mb-5">
-                      <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide mb-1">Monthly Credits</p>
-                      <p className="text-2xl font-black text-violet-700">${tier.credits}</p>
-                      <p className="text-xs text-gray-500">in treatment value</p>
+                      <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide mb-1">Monthly Skin Bank</p>
+                      <p className="text-2xl font-black text-violet-700">${tierPlan.monthlyCredits}</p>
+                      <p className="text-xs text-gray-500">in treatment value · rolls over</p>
                     </div>
 
                     {/* 8. Divider */}
@@ -430,7 +415,7 @@ const EnhancedMembership: React.FC = () => {
 
                     {/* 9. Feature list */}
                     <ul className="space-y-3 flex-grow mb-6">
-                      {tier.features.map((feature, idx) => (
+                      {tierFeatures.map((feature, idx) => (
                         <li key={idx} className="flex items-center gap-2">
                           <CheckCircle2 className="text-violet-500 w-4 h-4 flex-shrink-0" />
                           <span className="text-sm text-gray-700">{feature}</span>
@@ -441,21 +426,21 @@ const EnhancedMembership: React.FC = () => {
                     {/* 10. CTA Button */}
                     <button
                       type="button"
-                      onClick={() => handleJoin({ ...tier, monthlyPrice: tier.monthlyPrice })}
+                      onClick={() => handleJoin({ ...tierPlan, monthlyPrice: tierPlan.monthlyPrice })}
                       disabled={isCurrent}
                       className={`w-full rounded-xl py-3 font-semibold text-sm transition-all duration-200 ${
                         isCurrent
                           ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : tier.featured
+                          : isFeatured
                           ? "bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-500/20"
                           : "bg-violet-600 hover:bg-violet-700 text-white"
                       }`}
                     >
                       {isCurrent
                         ? "Current Plan"
-                        : tier.name === "Core"
+                        : tierId === "core"
                         ? "Get Started"
-                        : tier.name === "Evolve"
+                        : tierId === "evolve"
                         ? "Choose Evolve"
                         : "Go Premium"}
                     </button>
@@ -489,17 +474,17 @@ const EnhancedMembership: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
               {/* Connection line */}
               <div className="hidden md:block absolute top-16 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-[#B57EDC] via-[#9F6BCB] to-[#B57EDC] opacity-30" />
-              
+
               {[
                 {
                   step: "1",
                   title: "Choose Your Plan",
-                  description: "Select the membership tier that fits your goals and budget. Every plan includes Beauty Bucks rewards.",
+                  description: "Select the membership tier that fits your goals and budget. Every plan includes Skin Bank rewards.",
                   icon: CheckCircle2,
                   color: "bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB]"
                 },
                 {
-                  step: "2", 
+                  step: "2",
                   title: "Book Consultation",
                   description: "Schedule your complimentary consultation. We'll create your personalized treatment roadmap.",
                   icon: Calendar,
@@ -508,7 +493,7 @@ const EnhancedMembership: React.FC = () => {
                 {
                   step: "3",
                   title: "Start Your Journey",
-                  description: "Begin treatments immediately using your Beauty Bucks. Watch your confidence transform.",
+                  description: "Begin treatments immediately using your Skin Bank. Watch your confidence transform.",
                   icon: Star,
                   color: "bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB]"
                 }
@@ -556,13 +541,13 @@ const EnhancedMembership: React.FC = () => {
               {[
                 {
                   icon: Gift,
-                  title: "Beauty Bucks Rewards",
-                  description: "Every membership dollar becomes treatment credit. It's not a fee—it's your money working for you.",
+                  title: "Skin Bank Rewards",
+                  description: "Every membership dollar becomes treatment credit. It's not a fee-it's your money working for you.",
                   highlight: "100% Value Return"
                 },
                 {
                   icon: Shield,
-                  title: "Member-Only Pricing", 
+                  title: "Member-Only Pricing",
                   description: "Save 10-25% on all treatments and products. Most members save more than their membership cost monthly.",
                   highlight: "Up to 25% Off"
                 },
@@ -580,7 +565,7 @@ const EnhancedMembership: React.FC = () => {
                 },
                 {
                   icon: TrendingUp,
-                  title: "Progress Tracking", 
+                  title: "Progress Tracking",
                   description: "Regular skin analysis and progress photos help optimize your treatments for maximum results.",
                   highlight: "Proven Results"
                 },
@@ -634,15 +619,15 @@ const EnhancedMembership: React.FC = () => {
               {[
                 {
                   question: "Is this really a good value compared to paying per treatment?",
-                  answer: "Absolutely. Most members save $200-500+ monthly through member pricing alone, plus your Beauty Bucks give you 100% credit value. If you're getting any treatments regularly, membership pays for itself immediately."
+                  answer: "Absolutely. Most members save $200-500+ monthly through member pricing alone, plus your Skin Bank give you 100% credit value. If you're getting any treatments regularly, membership pays for itself immediately."
                 },
                 {
                   question: "What happens if I want to cancel my membership?",
-                  answer: "No problem. You can cancel anytime with 30 days notice. You'll retain member benefits through your final billing cycle, and any unused Beauty Bucks remain available for 90 days after cancellation."
+                  answer: "No problem. You can cancel anytime with 30 days notice. You'll retain member benefits through your final billing cycle, and any unused Skin Bank remain available for 90 days after cancellation."
                 },
                 {
-                  question: "Can I use Beauty Bucks for any treatment or product?",
-                  answer: "Yes! Beauty Bucks work like cash for any service or product we offer. There are no restrictions or blackout dates. Use them however best serves your wellness goals."
+                  question: "Can I use Skin Bank for any treatment or product?",
+                  answer: "Yes! Skin Bank work like cash for any service or product we offer. There are no restrictions or blackout dates. Use them however best serves your wellness goals."
                 },
                 {
                   question: "How quickly will I see results?",
@@ -689,13 +674,13 @@ const EnhancedMembership: React.FC = () => {
               <Badge variant="outline" size="lg" className="border-white/40 text-white mb-8 px-6 py-2">
                 Begin Your Journey
               </Badge>
-              
+
               <h2 className="text-4xl md:text-5xl font-black mb-8 tracking-tight">
                 Experience Premium Medical Aesthetics
               </h2>
-              
+
               <p className="text-xl text-white/90 leading-relaxed mb-8 max-w-3xl mx-auto">
-                Join over 3,200 members who've discovered the confidence that comes from looking and feeling their absolute best. 
+                Join over 3,200 members who've discovered the confidence that comes from looking and feeling their absolute best.
                 <span className="font-semibold"> Your transformation starts with one call.</span>
               </p>
 
@@ -709,7 +694,7 @@ const EnhancedMembership: React.FC = () => {
                 >
                   Call {practiceInfo.phone}
                 </Button>
-                
+
                 <Button
                   variant="ghost"
                   size="lg"

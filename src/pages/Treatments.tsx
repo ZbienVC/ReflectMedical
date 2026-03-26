@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Clock, Star, ChevronDown, ChevronUp, Zap, Droplets, Sparkles, Syringe, Layers, FlaskConical } from "lucide-react";
 import { treatments, MEMBERSHIP_DISCOUNTS, calculateSavings, Treatment, TreatmentVariant } from "../data/treatments";
+import TreatmentsByMembership from "../components/treatments/TreatmentsByMembership";
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   Neurotoxins: <Syringe className="w-5 h-5" />,
@@ -289,6 +290,22 @@ const Treatments: React.FC = () => {
             />
           ))}
       </div>
+
+      {/* Member Pricing Section */}
+      <motion.div
+        className="space-y-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-gray-900">Member Pricing</h2>
+          <p className="text-gray-500 text-sm">
+            See exactly what you pay as a member
+          </p>
+        </div>
+        <TreatmentsByMembership />
+      </motion.div>
     </div>
   );
 };
