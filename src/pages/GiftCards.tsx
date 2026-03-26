@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Gift, Mail, MessageSquare, Star, Check, Sparkles } from "lucide-react";
 import { createGiftCard, generateGiftCardCode } from "../services/giftCardService";
+import { trackGiftCardPurchase } from "../services/analyticsService";
 
 const AMOUNTS = [50, 100, 150, 250];
 
@@ -67,6 +68,7 @@ const GiftCards: React.FC = () => {
         status: "active",
       });
       setConfirmed({ code, amount: selectedAmount });
+      trackGiftCardPurchase(selectedAmount);
     } catch {
       setError("Something went wrong. Please try again or call (201) 882-1050.");
     }

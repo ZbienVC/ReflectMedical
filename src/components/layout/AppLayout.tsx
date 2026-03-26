@@ -20,12 +20,14 @@ import {
   ChevronRight,
 } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
+import InstallPrompt from "../ui/InstallPrompt";
+import ChatWidget from "../chat/ChatWidget";
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
-const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password"];
+const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password", "/gift-cards", "/"];
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const { user, profile } = useAuth();
@@ -194,6 +196,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
           {children}
         </div>
       </main>
+      <InstallPrompt />
+      <ChatWidget />
     </div>
   );
 }

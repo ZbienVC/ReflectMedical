@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Mail, Lock, User, Eye, EyeOff, Gift } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import { applyReferralCode } from "../services/referralService";
+import { trackSignUp } from "../services/analyticsService";
 import { getAuth } from "firebase/auth";
 
 function getFriendlyError(code: string): string {
@@ -69,6 +70,7 @@ const SignUp: React.FC = () => {
     setLoading(true);
     try {
       await signUp(email, password, `${firstName} ${lastName}`.trim());
+      trackSignUp("email");
       // Apply referral code if present - get UID from auth after signup
       if (referralCode) {
         const auth = getAuth();
