@@ -9,12 +9,15 @@ import {
   Clock,
   CheckCircle,
   ClipboardList,
+  Layers,
 } from "lucide-react";
 import { useAuth } from "../AuthContext";
 import { onBalanceChange, creditMonthlyBeautyBank, hasReceivedMonthlyCredit } from "../services/beautyBankService";
 import { getBookings } from "../services/treatmentService";
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { getTreatmentProgress, TreatmentProgress } from "../services/treatmentProgressService";
+import TreatmentProgressCard from "../components/treatments/TreatmentProgressCard";
 
 interface Transaction {
   id: string;
@@ -29,6 +32,92 @@ const TIER_CREDIT_MAP: Record<string, number> = {
   transform: 250, platinum: 250,
 };
 
+interface Suggestion {
+  title: string;
+  reason: string;
+  price?: string;
+  bookUrl: string;
+}
+
+function getSmartSuggestions(
+  appointments: Transaction[],
+  membershipTier: string | null,
+  _beautyBankBalance: number
+): Suggestion[] {
+  const suggestions: Suggestion[] = [];
+  const now = new Date();
+  const month = now.getMonth(); // 0=Jan
+
+  // 1. Time since last Botox
+  const botoxAppts = appointments.filter(
+    (t) => t.status === "completed" && t.treatment.toLowerCase().includes("botox")
+  );
+  if (botoxAppts.length > 0) {
+    const lastDate = new Date(botoxAppts[botoxAppts.length - 1].date);
+    const diffMonths =
+      (now.getFullYear() - lastDate.getFullYear()) * 12 +
+      (now.getMonth() - lastDate.getMonth());
+    if (diffMonths >= 3) {
+      suggestions.push({
+        title: "Botox Touch-Up",
+        reason: `It's been ${diffMonths} months since your last Botox`,
+        price: "From $12/unit (member)",
+        bookUrl: "/appointments?service=Botox",
+      });
+    }
+  }
+
+  // 2. Membership upgrade suggestion for Core members
+  if (membershipTier?.toLowerCase() === "core") {
+    suggestions.push({
+      title: "Upgrade to Evolve",
+      reason: "Save an extra $40/syringe on fillers vs your current tier",
+      price: "$99/mo",
+      bookUrl: "/membership",
+    });
+  }
+
+  // 3. Seasonal suggestions
+  const seasonal: Suggestion[] = [];
+  if (month >= 2 && month <= 4) {
+    seasonal.push({
+      title: "Chemical Peel",
+      reason: "Spring is the perfect time for a fresh glow",
+      price: "From $150 (member)",
+      bookUrl: "/appointments?service=Chemical+Peel",
+    });
+  } else if (month >= 5 && month <= 7) {
+    seasonal.push({
+      title: "Laser Hair Removal",
+      reason: "Start sessions now for smooth summer skin",
+      price: "From $135/session (member)",
+      bookUrl: "/appointments?service=Laser+Hair+Removal",
+    });
+  } else if (month >= 8 && month <= 10) {
+    seasonal.push({
+      title: "RF Microneedling",
+      reason: "Fall is ideal for skin tightening treatments",
+      price: "From $575 (member)",
+      bookUrl: "/appointments?service=RF+Microneedling",
+    });
+  }
+
+  // 4. Never tried popular treatments
+  const bookedNames = appointments.map((t) => t.treatment.toLowerCase());
+  if (!bookedNames.some((n) => n.includes("hydrafacial"))) {
+    seasonal.push({
+      title: "HydraFacial",
+      reason: "A top-rated treatment you haven't tried yet",
+      price: "From $175 (member)",
+      bookUrl: "/appointments?service=HydraFacial",
+    });
+  }
+
+  // Merge: prioritize time-based, then upgrade, then seasonal
+  const all = [...suggestions, ...seasonal];
+  return all.slice(0, 3);
+}
+
 const Dashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const location = useLocation();
@@ -39,6 +128,8 @@ const Dashboard: React.FC = () => {
   const [activationBanner, setActivationBanner] = useState(false);
   const [creditBanner, setCreditBanner] = useState<number | null>(null);
   const [hasIntake, setHasIntake] = useState<boolean | null>(null);
+  const [treatmentProgress, setTreatmentProgress] = useState<TreatmentProgress[]>([]);
+  const [progressLoading, setProgressLoading] = useState(false);
 
   // Handle ?membership=activated query param
   useEffect(() => {
@@ -78,6 +169,15 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (!user) return;
     getDoc(doc(db, "intakeForms", user.uid)).then((snap) => setHasIntake(snap.exists())).catch(() => setHasIntake(false));
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    setProgressLoading(true);
+    getTreatmentProgress(user.uid)
+      .then(setTreatmentProgress)
+      .catch(() => {})
+      .finally(() => setProgressLoading(false));
   }, [user]);
   useEffect(() => {
     if (!user || !profile?.membershipTierId) return;
@@ -327,6 +427,63 @@ const Dashboard: React.FC = () => {
           </Link>
         </motion.div>
       )}
+
+      {/* Treatment Progress Tracker */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Layers className="w-5 h-5 text-violet-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Active Treatment Series</h2>
+        </div>
+        {progressLoading ? (
+          <div className="space-y-3">
+            {[1, 2].map((i) => <div key={i} className="h-32 rounded-2xl bg-gray-100 animate-pulse" />)}
+          </div>
+        ) : treatmentProgress.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+              <Layers className="w-5 h-5 text-gray-400" />
+            </div>
+            <p className="text-gray-500 text-sm">No active treatment series.</p>
+            <Link to="/treatments" className="mt-3 inline-block text-violet-600 text-sm font-semibold hover:underline">
+              Explore treatments
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {treatmentProgress.map((p) => (
+              <TreatmentProgressCard key={p.id} progress={p} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Smart Suggestions */}
+      {(() => {
+        const suggestions = getSmartSuggestions(transactions, membershipTier, liveBalance);
+        if (suggestions.length === 0) return null;
+        return (
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Suggested for You</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {suggestions.map((s) => (
+                <div key={s.title} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col">
+                  <p className="font-semibold text-gray-900 text-sm">{s.title}</p>
+                  <p className="text-gray-500 text-xs mt-1 flex-1">{s.reason}</p>
+                  {s.price && (
+                    <p className="text-violet-600 text-xs font-semibold mt-2">{s.price}</p>
+                  )}
+                  <Link
+                    to={s.bookUrl}
+                    className="mt-3 block text-center py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-semibold transition-colors"
+                  >
+                    Book Now
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </motion.div>
   );
 };

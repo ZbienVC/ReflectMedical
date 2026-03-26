@@ -27,6 +27,7 @@ import {
   Phone
 } from "lucide-react";
 import { Button, Card, Badge, Section } from "../components/ui";
+import ROICalculator from "../components/membership/ROICalculator";
 
 const EnhancedMembership: React.FC = () => {
   const { profile, user } = useAuth();
@@ -399,6 +400,13 @@ const EnhancedMembership: React.FC = () => {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ROI CALCULATOR */}
+      <section className="py-16">
+        <div className="max-w-5xl mx-auto px-6">
+          <ROICalculator />
         </div>
       </section>
 

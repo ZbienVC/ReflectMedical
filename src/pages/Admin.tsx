@@ -35,6 +35,12 @@ import { sendAppointmentReminder } from "../services/notificationService";
 import { INITIAL_MEMBERSHIP_TIERS, INITIAL_SERVICES } from "../constants";
 import { writeBatch } from "firebase/firestore";
 import { formatCurrency } from "../lib/utils";
+import {
+  getTreatmentProgress,
+  saveTreatmentProgress,
+  updateSessionCount,
+  TreatmentProgress,
+} from "../services/treatmentProgressService";
 
 // ---- Types ----
 interface AdminUser {
@@ -376,6 +382,125 @@ function IntakeModal({ userId, onClose }: { userId: string; onClose: () => void 
     </div>
   );
 }
+function MemberTreatmentProgress({ userId }: { userId: string }) {
+  const [progress, setProgress] = useState<TreatmentProgress[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({ treatmentName: "", totalSessions: 6, notes: "" });
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    const data = await getTreatmentProgress(userId).catch(() => []);
+    setProgress(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, [userId]);
+
+  const handleAdd = async () => {
+    setSaving(true);
+    const id = `${Date.now()}`;
+    await saveTreatmentProgress(userId, {
+      id,
+      treatmentName: form.treatmentName,
+      totalSessions: form.totalSessions,
+      completedSessions: 0,
+      startDate: new Date().toISOString().slice(0, 10),
+      notes: form.notes || undefined,
+    });
+    setSaving(false);
+    setShowAdd(false);
+    setForm({ treatmentName: "", totalSessions: 6, notes: "" });
+    load();
+  };
+
+  const handleMarkComplete = async (p: TreatmentProgress) => {
+    if (p.completedSessions >= p.totalSessions) return;
+    await updateSessionCount(userId, p.id, p.completedSessions + 1);
+    load();
+  };
+
+  const MULTI_SESSION_TREATMENTS = ["Laser Hair Removal", "RF Microneedling", "Microneedling", "Chemical Peel Series", "Other"];
+
+  if (loading) return <div className="text-xs text-gray-400 animate-pulse mt-2">Loading treatment progress...</div>;
+
+  return (
+    <div className="mt-3">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Treatment Progress</p>
+        <button
+          onClick={() => setShowAdd(!showAdd)}
+          className="flex items-center gap-1 px-2.5 py-1 bg-violet-100 text-violet-700 rounded-lg text-xs font-semibold hover:bg-violet-200"
+        >
+          <Plus className="w-3 h-3" /> Add Series
+        </button>
+      </div>
+
+      {showAdd && (
+        <div className="bg-white border border-violet-200 rounded-xl p-4 mb-3 space-y-2">
+          <select
+            value={form.treatmentName}
+            onChange={(e) => setForm({ ...form, treatmentName: e.target.value })}
+            className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-300"
+          >
+            <option value="">Select treatment...</option>
+            {MULTI_SESSION_TREATMENTS.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-500 w-24">Total Sessions:</label>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={form.totalSessions}
+              onChange={(e) => setForm({ ...form, totalSessions: Number(e.target.value) })}
+              className="w-16 text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-violet-300"
+            />
+          </div>
+          <input
+            type="text"
+            placeholder="Notes (optional)"
+            value={form.notes}
+            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-300"
+          />
+          <button
+            onClick={handleAdd}
+            disabled={saving || !form.treatmentName}
+            className="px-3 py-1.5 bg-violet-600 text-white text-xs font-semibold rounded-lg hover:bg-violet-700 disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Add Series"}
+          </button>
+        </div>
+      )}
+
+      {progress.length === 0 ? (
+        <p className="text-xs text-gray-400">No treatment series yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {progress.map((p) => (
+            <div key={p.id} className="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center gap-4 text-sm">
+              <div className="flex-1">
+                <span className="font-medium text-gray-700">{p.treatmentName}</span>
+                <span className="ml-2 text-gray-400 text-xs">Session {p.completedSessions}/{p.totalSessions}</span>
+                {p.notes && <p className="text-xs text-gray-400 mt-0.5">{p.notes}</p>}
+              </div>
+              <button
+                onClick={() => handleMarkComplete(p)}
+                disabled={p.completedSessions >= p.totalSessions}
+                className="px-2.5 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-200 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Mark Complete
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MembersTab({ members, loading }: { members: AdminUser[]; loading: boolean; }) {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -481,6 +606,7 @@ function MembersTab({ members, loading }: { members: AdminUser[]; loading: boole
                     <tr>
                       <td colSpan={7} className="bg-violet-50 px-6 py-4">
                         <MemberAppointments userId={m.uid} />
+                        <MemberTreatmentProgress userId={m.uid} />
                       </td>
                     </tr>
                   )}

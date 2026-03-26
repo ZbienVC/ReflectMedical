@@ -22,6 +22,7 @@ import {
 import ThemeToggle from "../ui/ThemeToggle";
 import InstallPrompt from "../ui/InstallPrompt";
 import ChatWidget from "../chat/ChatWidget";
+import PromoBanner from "../ui/PromoBanner";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -192,6 +193,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         className={`flex-1 min-h-screen pt-16 md:pt-0 transition-all duration-300 ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}
         style={{ backgroundColor: 'var(--bg)' }}
       >
+        <PromoBanner />
         <div className="max-w-7xl mx-auto px-6 py-8">
           {children}
         </div>

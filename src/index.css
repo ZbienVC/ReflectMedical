@@ -51,6 +51,7 @@ html.dark {
 @layer base {
   html {
     @apply antialiased;
+    scroll-behavior: smooth;
   }
 
   body {

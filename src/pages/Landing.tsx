@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, animate } from "framer-motion";
 import {
   Star, MapPin, Phone, Clock, Instagram, Facebook, ChevronRight,
-  Menu, X, CheckCircle, ArrowRight, Sparkles, Calendar, Gift
+  Menu, X, CheckCircle, ArrowRight, Sparkles, Calendar, Gift, ChevronDown, ChevronUp
 } from "lucide-react";
 import { practiceInfo, physicians } from "../data/practiceData";
 import { realReviews } from "../data/reviews";
@@ -49,10 +49,96 @@ function Stars({ n = 5 }: { n?: number }) {
   );
 }
 
+// ─── Animated counter ────────────────────────────────────────────────────────
+function AnimatedCounter({ to, suffix = "" }: { to: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  useEffect(() => {
+    if (!inView || !ref.current) return;
+    const node = ref.current;
+    const controls = animate(0, to, {
+      duration: 1.6,
+      ease: "easeOut",
+      onUpdate(v) {
+        node.textContent = Math.round(v).toLocaleString() + suffix;
+      },
+    });
+    return () => controls.stop();
+  }, [inView, to, suffix]);
+  return <span ref={ref}>0{suffix}</span>;
+}
+
+// ─── Is open helper ──────────────────────────────────────────────────────────
+function isOfficeOpen(): boolean {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun, 1=Mon...
+  const hour = now.getHours() + now.getMinutes() / 60;
+  // Mon(1): 9-19, Tue(2): 9-14, Wed(3): 9-17, Thu(4): 9-17, Fri(5): 9-16
+  const hours: Record<number, [number, number]> = {
+    1: [9, 19],
+    2: [9, 14],
+    3: [9, 17],
+    4: [9, 17],
+    5: [9, 16],
+  };
+  const range = hours[day];
+  if (!range) return false;
+  return hour >= range[0] && hour < range[1];
+}
+
+// ─── FAQ ─────────────────────────────────────────────────────────────────────
+const FAQ_DATA = [
+  { q: "How does the Beauty Bank work?", a: "Each month, credits automatically load to your account based on your tier ($99–$250). Use them toward any treatment. Unused credits roll over while your membership is active." },
+  { q: "Can I cancel my membership anytime?", a: "Yes. You can cancel or pause your membership anytime from your account settings. No long-term contracts." },
+  { q: "Do you offer same-day appointments?", a: "Yes! We frequently have same-day availability. Call (201) 882-1050 or book online." },
+  { q: "What's the difference between the membership tiers?", a: "All tiers include member pricing and monthly Beauty Bank credits. Higher tiers offer more credits and bigger discounts on premium treatments like fillers and devices." },
+  { q: "Is there a consultation fee?", a: "No. We offer free consultations for new patients. Book online or call us." },
+  { q: "What areas do you treat with Botox?", a: "Forehead lines, crow's feet, frown lines (11s), brow lift, bunny lines, lip flip, neck bands, and more." },
+];
+
+function FAQSection() {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <section className="py-20 bg-white">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        <FadeIn className="text-center mb-12">
+          <p className="text-violet-600 text-sm font-semibold tracking-widest uppercase mb-2">FAQ</p>
+          <h2 className="text-4xl font-black text-gray-900">Frequently Asked Questions</h2>
+        </FadeIn>
+        <div className="space-y-3">
+          {FAQ_DATA.map((item, i) => (
+            <FadeIn key={i} delay={i * 0.04}>
+              <div className="border border-gray-200 rounded-2xl overflow-hidden">
+                <button
+                  className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+                  onClick={() => setOpen(open === i ? null : i)}
+                >
+                  <span className="font-semibold text-gray-900 text-sm pr-4">{item.q}</span>
+                  {open === i ? (
+                    <ChevronUp className="w-4 h-4 text-violet-500 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  )}
+                </button>
+                {open === i && (
+                  <div className="px-6 pb-4 text-sm text-gray-600 leading-relaxed border-t border-gray-100 pt-3">
+                    {item.a}
+                  </div>
+                )}
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Landing() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("All");
+  const [isOpen] = useState(isOfficeOpen);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -105,6 +191,10 @@ export default function Landing() {
 
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-3">
+            <span className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${isOpen ? "text-green-700 border-green-200 bg-green-50" : "text-gray-500 border-gray-200 bg-gray-50"}`}>
+              <span className={`w-2 h-2 rounded-full ${isOpen ? "bg-green-500" : "bg-gray-400"}`} />
+              {isOpen ? "Open Now" : "Closed"}
+            </span>
             <Link
               to="/login"
               className="px-4 py-2 text-sm font-semibold text-violet-600 border border-violet-200 rounded-lg hover:bg-violet-50 transition"
@@ -264,16 +354,18 @@ export default function Landing() {
             {/* Stat cards */}
             <div className="grid grid-cols-2 gap-4">
               {[
-                { label: "Patients Served", value: "3,250+" },
-                { label: "Google Reviews", value: "195+" },
-                { label: "Average Rating", value: "4.9 ⭐" },
-                { label: "Years in Business", value: "8+" },
+                { label: "Patients Served", to: 3250, suffix: "+" },
+                { label: "Google Reviews", to: 195, suffix: "+" },
+                { label: "Average Rating", to: 4.9, suffix: " ⭐" },
+                { label: "Years in Business", to: 8, suffix: "+" },
               ].map((card) => (
                 <div
                   key={card.label}
                   className="bg-white rounded-2xl p-5 shadow-xl border border-gray-100"
                 >
-                  <p className="text-3xl font-black text-violet-600 mb-1">{card.value}</p>
+                  <p className="text-3xl font-black text-violet-600 mb-1">
+                    <AnimatedCounter to={card.to} suffix={card.suffix} />
+                  </p>
                   <p className="text-sm text-gray-500">{card.label}</p>
                 </div>
               ))}
@@ -582,9 +674,13 @@ export default function Landing() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════
-          9. LOCATION + HOURS (id="location")
+          8.5 FAQ
       ══════════════════════════════════════════════════════════ */}
-      <section id="location" className="py-20 bg-gray-50">
+      <FAQSection />
+
+      {/* ══════════════════════════════════════════════════════════
+          9. LOCATION + HOURS (id="location")
+      ══════════════════════════════════════════════════════════ */}      <section id="location" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <FadeIn className="text-center mb-14">
             <p className="text-violet-600 text-sm font-semibold tracking-widest uppercase mb-2">Find Us</p>
