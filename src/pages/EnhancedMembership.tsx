@@ -7,7 +7,7 @@ import { MembershipTier } from "../types";
 import { formatCurrency } from "../lib/utils";
 import { addMonthlyCredits } from "../services/membershipService";
 import { membershipTiers, realStats, realReviews, practiceInfo } from "../data/practiceData";
-import { TREATMENTS, MEMBERSHIP_PLANS, getMemberPrice } from "../data/skinBank";
+import { MEMBERSHIP_PLANS } from "../data/skinBank";
 import {
   Sparkles,
   TrendingUp,
@@ -38,31 +38,32 @@ const EnhancedMembership: React.FC = () => {
   const headerOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0.8]);
 
   // Derive dynamic benefits from skinBank data
-  const botox = TREATMENTS.find((t) => t.id === "botox")!;
-  const juvederm = TREATMENTS.find((t) => t.id === "juvederm")!;
 
   const getTierFeatures = (tierId: "core" | "evolve" | "transform", skinBankAmount: number): string[] => {
-    const botoxPrice = getMemberPrice(botox, tierId);
-    const juvedermPrice = getMemberPrice(juvederm, tierId);
-    const juvedermSavings = juvederm.basePrice - juvedermPrice;
-    const features: string[] = [
-      `Botox from $${botoxPrice}/unit (reg. $${botox.basePrice})`,
-    ];
-    if (juvedermSavings > 0) {
-      features.push(`Save $${juvedermSavings} per syringe on fillers`);
-    }
-    features.push(`$${skinBankAmount} monthly Skin Bank value`);
     if (tierId === "core") {
-      features.push("10% off chemical peels & laser");
+      return [
+        "Botox from $12/unit (reg. $15)",
+        "$99 monthly Skin Bank value",
+        "10% off chemical peels & skincare",
+        "Laser Hair Removal from $135/session",
+      ];
     } else if (tierId === "evolve") {
-      features.push("Priority booking access");
-      features.push("Up to 15% off medical devices");
+      return [
+        "Botox from $10/unit (reg. $15)",
+        "$150 monthly Skin Bank value",
+        "Save $75/syringe on fillers",
+        "Save $75 on RF Microneedling",
+        "Save $40 on HydraFacial",
+      ];
     } else {
-      features.push("Priority booking + VIP access");
-      features.push("Up to 20% off all services");
-      features.push("GLP-1 weight management savings");
+      return [
+        "Botox from $9/unit (reg. $15)",
+        "$250 monthly Skin Bank value",
+        "Save $150/syringe on fillers",
+        "Save $200 on RF Microneedling",
+        "Save $90 on chemical peels",
+      ];
     }
-    return features;
   };
 
   const handleJoin = (tier: any) => {

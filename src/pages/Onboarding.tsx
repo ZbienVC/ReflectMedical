@@ -208,18 +208,16 @@ const Onboarding: React.FC = () => {
                       key={tier.id}
                       onClick={() => setSelectedTier(tier.id)}
                       whileHover={{ y: -2 }}
-                      className={`relative text-left rounded-2xl border-2 p-5 transition-all ${
+                      className={`text-left rounded-2xl border-2 p-5 transition-all ${
                         selectedTier === tier.id
                           ? `${tier.activeBorder} bg-violet-50 dark:bg-violet-900/10`
                           : `${tier.border} bg-white dark:bg-gray-700 hover:border-violet-300 dark:hover:border-violet-600`
                       }`}
                     >
                       {tier.popular && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                          <span className="bg-violet-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                            Most Popular
-                          </span>
-                        </div>
+                        <span className="inline-block bg-violet-600 text-white text-xs font-semibold px-3 py-1 rounded-full mb-2">
+                          Most Popular
+                        </span>
                       )}
                       <div className="text-violet-700 text-lg font-black mb-1">
                         {tier.name}
@@ -289,13 +287,13 @@ const Onboarding: React.FC = () => {
                   </div>
                   {selectedTierData && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500 dark:text-gray-400">Monthly Credits</span>
-                      <span className="text-green-600 dark:text-green-400 font-medium">${selectedTierData.credits}</span>
+                      <span className="text-gray-500 dark:text-gray-400">Monthly Skin Bank</span>
+                      <span className="text-green-600 dark:text-green-400 font-medium">${selectedTierData.skinBank}</span>
                     </div>
                   )}
                   <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
                     <p className="text-gray-500 dark:text-gray-400 text-xs">
-                      Your credits will be added on the 1st of each month. You can start booking treatments right away.
+                      Your Skin Bank will be added on the 1st of each month. You can start booking treatments right away.
                     </p>
                   </div>
                 </div>
