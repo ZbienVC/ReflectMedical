@@ -73,9 +73,11 @@ const SignUp: React.FC = () => {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-violet-800 mb-4">
-            <span className="text-white font-black text-xl">R</span>
-          </div>
+          <img
+            src="/reflect-logo.jpg"
+            alt="Reflect Medical & Cosmetic Center"
+            className="h-16 w-auto object-contain mx-auto mb-4"
+          />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create your account</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Join Reflect Medical today</p>
         </div>
