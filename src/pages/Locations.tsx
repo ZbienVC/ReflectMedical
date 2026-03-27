@@ -206,27 +206,20 @@ const Locations: React.FC = () => {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
                 className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 text-center"
               >
-                <div className="mx-auto mb-4">
+                <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 border-2 border-violet-100 shadow-md">
                   {physician.image ? (
                     <img
                       src={physician.image}
                       alt={physician.name}
-                      className="w-20 h-20 rounded-full object-cover mx-auto border-2 border-violet-100 shadow-md"
-                      onError={(e) => {
-                        const t = e.currentTarget;
-                        t.style.display = 'none';
-                        (t.nextElementSibling as HTMLElement)?.removeAttribute('style');
-                      }}
+                      className="w-full h-full object-cover"
                     />
-                  ) : null}
-                  <div
-                    className="w-20 h-20 bg-gradient-to-br from-violet-600 to-violet-700 rounded-full flex items-center justify-center mx-auto"
-                    style={physician.image ? { display: 'none' } : {}}
-                  >
-                    <span className="text-white text-2xl font-black">
-                      {physician.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
-                    </span>
-                  </div>
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center">
+                      <span className="text-white text-2xl font-black">
+                        {physician.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{physician.name}</h3>
                 <p className="text-violet-600 dark:text-violet-400 font-medium text-sm mb-2">{physician.title}</p>

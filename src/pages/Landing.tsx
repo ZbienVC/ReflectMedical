@@ -853,24 +853,19 @@ export default function Landing() {
             {physicians.map((doc, i) => (
               <FadeIn key={doc.id} delay={i * 0.15}>
                 <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100 hover:border-violet-200 hover:shadow-lg transition h-full">
-                  {/* Avatar — real photo with initials fallback */}
-                  {doc.image ? (
-                    <img
-                      src={doc.image}
-                      alt={doc.name}
-                      className="w-20 h-20 rounded-2xl object-cover mb-5 border-2 border-violet-100 shadow-md"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = 'none';
-                        target.nextElementSibling?.removeAttribute('style');
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className="w-20 h-20 rounded-2xl bg-violet-600 flex items-center justify-center text-white text-2xl font-black mb-5"
-                    style={doc.image ? { display: 'none' } : {}}
-                  >
-                    {doc.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                  {/* Avatar — real photo */}
+                  <div className="w-20 h-20 rounded-2xl overflow-hidden mb-5 border-2 border-violet-100 shadow-md mx-auto">
+                    {doc.image ? (
+                      <img
+                        src={doc.image}
+                        alt={doc.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-violet-600 flex items-center justify-center text-white text-2xl font-black">
+                        {doc.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                      </div>
+                    )}
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">{doc.name}</h3>
                   <p className="text-violet-600 text-sm font-medium mb-4">{doc.title}</p>
