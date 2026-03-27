@@ -46,7 +46,7 @@ export const physicians = [
       "Aesthetic Medicine"
     ],
     bio: "Leah Bienstock, PA-C, has profound experience, passion, and knowledge for her craft. For her, it is not just a profession – but a form of art that helps each individual enhance and appreciate their beauty. Each person that Leah welcomes into her space receives extraordinary love and care that trumps any other service provider. Leah utilizes special techniques and devices to minimize both bruising and recovery time. She spends quality time with each patient to ensure that she is meeting their needs and desires. Her great attention to detail will have you feeling and looking your absolute best, naturally and effortlessly.",
-    image: null
+    image: "/leah-bienstock.jpg"
   },
   {
     id: "douglas-bienstock",
@@ -60,7 +60,7 @@ export const physicians = [
       "Weight Management (GLP-1 Therapy)"
     ],
     bio: "Dr. Douglas Bienstock is a board-certified Family Practice physician bringing comprehensive primary care and medical expertise to Reflect Medical & Cosmetic Center. Dr. Bienstock oversees medical services including addiction recovery treatment and weight management programs, providing patients with compassionate, evidence-based care.",
-    image: null
+    image: "/douglas-bienstock.jpg"
   }
 ];
 
@@ -338,6 +338,7 @@ export const membershipTiers = [
     color: "from-yellow-500 to-yellow-600"
   }
 ];
+
 
 
 
