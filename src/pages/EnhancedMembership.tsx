@@ -23,7 +23,9 @@ import {
   Gift,
   Phone
 } from "lucide-react";
-import { Button, Card, Badge, Section } from "../components/ui";
+import { Button, Card, Badge, Section, useToast } from "../components/ui";
+import { MembershipCompareTable } from "../components/MembershipCompareTable";
+import { MemberStories } from "../components/MemberStories";
 
 const EnhancedMembership: React.FC = () => {
   const { profile, user } = useAuth();
@@ -31,6 +33,11 @@ const EnhancedMembership: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isAnnual, setIsAnnual] = useState(true);
   const [hoveredTier, setHoveredTier] = useState<string | null>(null);
+  const { showToast } = useToast();
+
+  const currentTierName = profile?.membershipTierId
+    ? tiers.find((tier) => tier.id === profile.membershipTierId)?.name
+    : undefined;
   
   const { scrollYProgress } = useScroll();
   const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
@@ -39,10 +46,25 @@ const EnhancedMembership: React.FC = () => {
   const handleJoin = (tier: any) => {
     const message = `I'm interested in joining the ${tier.name} membership tier at $${tier.monthlyPrice}/month. Can you help me get started?`;
     const phoneUrl = `tel:${practiceInfo.phone}`;
-    
-    if (window.confirm(`Ready to join the ${tier.name} membership?\n\nClick OK to call ${practiceInfo.phone} and speak with our membership team.`)) {
-      window.location.href = phoneUrl;
+
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(message).catch(() => {});
     }
+
+    showToast(
+      "success",
+      `We'll connect you with ${practiceInfo.phone}`,
+      `Tell the concierge you'd like to start the ${tier.name} plan. We copied your talking points.`
+    );
+
+    setTimeout(() => {
+      window.location.href = phoneUrl;
+    }, 400);
+  };
+
+  const handleJoinByName = (tierName: string) => {
+    const tier = tiers.find((t) => t.name === tierName);
+    if (tier) handleJoin(tier);
   };
 
   if (loading) {
@@ -679,6 +701,13 @@ const EnhancedMembership: React.FC = () => {
             </div>
           </div>
         </section>
+
+        <MembershipCompareTable
+          currentTierName={currentTierName}
+          onSelect={handleJoinByName}
+        />
+
+        <MemberStories />
 
         {/* 6. FAQ - Objection Handling */}
         <section className="py-20">

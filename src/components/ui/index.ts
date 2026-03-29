@@ -5,6 +5,7 @@ export { Button, type ButtonProps } from './Button';
 export { Card, type CardProps } from './Card';
 export { Badge, type BadgeProps } from './Badge';  
 export { Section, type SectionProps } from './Section';
+export { ToastProvider, useToast } from './Toast';
 
 // Component usage guidelines:
 // - Always use design system components instead of custom HTML

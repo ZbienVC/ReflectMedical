@@ -20,6 +20,7 @@ import Onboarding from "./pages/Onboarding";
 import Profile from "./pages/Profile";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AppLayout from "./components/layout/AppLayout";
+import { ToastProvider } from "./components/ui/Toast";
 
 const PrivateRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ children, adminOnly }) => {
   const { user, profile, loading } = useAuth();
@@ -35,7 +36,8 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <Router>
+        <ToastProvider>
+          <Router>
           <AppLayout>
             <Routes>
               {/* Public routes */}
@@ -69,6 +71,7 @@ export default function App() {
             </Routes>
           </AppLayout>
         </Router>
+        </ToastProvider>
       </AuthProvider>
     </ErrorBoundary>
   );
