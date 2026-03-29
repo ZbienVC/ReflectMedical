@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   CreditCard,
   Calendar,
   Sparkles,
   Gift,
   Clock,
-  MapPin,
+  Zap,
 } from "lucide-react";
+
 import { useAuth } from "../AuthContext";
 import { onBalanceChange } from "../services/beautyBankService";
 import { getBookings } from "../services/treatmentService";
+import BookingModal from "../components/BookingModal";
 
 interface Transaction {
   id: string;
@@ -49,11 +51,21 @@ const Dashboard: React.FC = () => {
       .finally(() => setIsLoading(false));
   }, [user]);
 
+  const [quickBookTreatment, setQuickBookTreatment] = useState<{
+    id: string; name: string; price: number; priceLabel?: string; description?: string; duration?: string;
+  } | null>(null);
+
   const firstName = (profile?.name ?? user?.displayName ?? "there").split(" ")[0];
   const membershipTier = profile?.membershipTierId
     ? profile.membershipTierId.charAt(0).toUpperCase() + profile.membershipTierId.slice(1)
     : null;
   const completedCount = transactions.filter((t) => t.status === "completed").length;
+
+  const popularTreatments = [
+    { id: "botox", name: "Botox", price: 14, priceLabel: "from $14/unit", description: "Smooth fine lines naturally.", duration: "15–30 min" },
+    { id: "fillers", name: "Fillers", price: 700, priceLabel: "from $700", description: "Restore volume & contour.", duration: "30–45 min" },
+    { id: "hydrafacial", name: "HydraFacial", price: 175, priceLabel: "from $175", description: "Cleanse, extract & hydrate.", duration: "45 min" },
+  ];
 
   const quickActions = [
     { label: "Book Appointment", desc: "Schedule your next visit", icon: <Calendar className="w-5 h-5" />, href: "/appointments" },
@@ -182,6 +194,38 @@ const Dashboard: React.FC = () => {
         )}
       </div>
 
+      {/* Quick Book Widget */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Book a Treatment</h2>
+          <Link to="/catalog" className="text-sm text-violet-600 dark:text-violet-400 hover:underline font-medium">
+            View all →
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {popularTreatments.map((t) => (
+            <motion.div
+              key={t.id}
+              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-md transition-all group cursor-pointer"
+              whileHover={{ y: -2 }}
+              onClick={() => setQuickBookTreatment(t)}
+            >
+              <div className="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center mb-3">
+                <Zap className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+              </div>
+              <p className="font-bold text-gray-900 dark:text-white text-sm">{t.name}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5 mb-3">{t.description}</p>
+              <button
+                className="w-full py-2 rounded-xl bg-[#B57EDC] hover:bg-[#a06cc9] text-white text-xs font-bold transition-colors"
+                onClick={(e) => { e.stopPropagation(); setQuickBookTreatment(t); }}
+              >
+                Book Now
+              </button>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
       {/* Quick Actions */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
@@ -201,6 +245,16 @@ const Dashboard: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Quick Book Modal */}
+      <AnimatePresence>
+        {quickBookTreatment && (
+          <BookingModal
+            treatment={quickBookTreatment}
+            onClose={() => setQuickBookTreatment(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

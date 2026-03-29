@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { db } from "../firebase";
 import { collection, getDocs, query, orderBy, limit, doc, setDoc, writeBatch } from "firebase/firestore";
 import { Transaction, UserProfile, MembershipTier, Service } from "../types";
 import { formatCurrency } from "../lib/utils";
-import { Users, TrendingUp, History, Database, ShieldCheck, Plus, Trash2, Sparkles } from "lucide-react";
+import { Users, TrendingUp, History, Database, ShieldCheck, Sparkles, Calendar } from "lucide-react";
 import { INITIAL_MEMBERSHIP_TIERS, INITIAL_SERVICES } from "../constants";
 
 const Admin: React.FC = () => {
@@ -68,7 +69,6 @@ const Admin: React.FC = () => {
     }
 
     await batch.commit();
-    alert("Database seeded successfully!");
     window.location.reload();
   };
 
@@ -98,12 +98,20 @@ const Admin: React.FC = () => {
           <h1 className="text-4xl font-serif font-bold text-slate-900 mb-2">Admin Dashboard</h1>
           <p className="text-slate-500 font-medium">Manage practice performance and patient data.</p>
         </div>
-        <button
-          onClick={handleSeed}
-          className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-bold rounded-full hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200"
-        >
-          <Database className="w-4 h-4" /> Seed Database
-        </button>
+        <div className="flex gap-3 flex-wrap">
+          <Link
+            to="/admin/bookings"
+            className="flex items-center gap-2 px-5 py-3 bg-[#B57EDC] text-white font-bold rounded-full hover:bg-[#a06cc9] transition-all"
+          >
+            <Calendar className="w-4 h-4" /> Booking Requests
+          </Link>
+          <button
+            onClick={handleSeed}
+            className="flex items-center gap-2 px-5 py-3 bg-emerald-600 text-white font-bold rounded-full hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200"
+          >
+            <Database className="w-4 h-4" /> Seed Database
+          </button>
+        </div>
       </header>
 
       {/* Stats Grid */}

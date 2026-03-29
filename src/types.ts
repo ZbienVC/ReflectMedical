@@ -59,3 +59,17 @@ export type Appointment = {
   date: string;
   status: "scheduled" | "completed" | "canceled";
 };
+
+export type AppointmentRequest = {
+  id?: string;
+  treatmentId: string;
+  treatmentName: string;
+  price: number;
+  preferredDate: string;
+  name: string;
+  phone: string;
+  email: string;
+  notes: string;
+  status: "pending" | "confirmed" | "cancelled";
+  createdAt: string;
+};

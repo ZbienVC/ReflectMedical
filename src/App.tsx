@@ -8,6 +8,7 @@ import Locations from "./pages/Locations";
 import Catalog from "./pages/Catalog";
 import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
+import AdminBookings from "./pages/AdminBookings";
 import Credits from "./pages/Credits";
 import ReferralCenter from "./pages/ReferralCenter";
 import Appointments from "./pages/Appointments";
@@ -66,6 +67,7 @@ export default function App() {
               <Route path="/checkout/:serviceId" element={<PrivateRoute><Checkout /></PrivateRoute>} />
               <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
               <Route path="/admin" element={<PrivateRoute adminOnly><Admin /></PrivateRoute>} />
+              <Route path="/admin/bookings" element={<PrivateRoute adminOnly><AdminBookings /></PrivateRoute>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
