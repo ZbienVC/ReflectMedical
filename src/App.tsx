@@ -9,6 +9,8 @@ import Catalog from "./pages/Catalog";
 import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
 import AdminBookings from "./pages/AdminBookings";
+import GiftCards from "./pages/GiftCards";
+import AdminGiftCards from "./pages/AdminGiftCards";
 import Credits from "./pages/Credits";
 import ReferralCenter from "./pages/ReferralCenter";
 import Appointments from "./pages/Appointments";
@@ -68,6 +70,8 @@ export default function App() {
               <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
               <Route path="/admin" element={<PrivateRoute adminOnly><Admin /></PrivateRoute>} />
               <Route path="/admin/bookings" element={<PrivateRoute adminOnly><AdminBookings /></PrivateRoute>} />
+              <Route path="/gift-cards" element={<PrivateRoute><GiftCards /></PrivateRoute>} />
+              <Route path="/admin/gift-cards" element={<PrivateRoute adminOnly><AdminGiftCards /></PrivateRoute>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

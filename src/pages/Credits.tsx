@@ -9,9 +9,12 @@ import {
   ChevronRight,
   Clock,
   Inbox,
+  Gift,
 } from "lucide-react";
 import { useAuth } from "../AuthContext";
-import { onBalanceChange, getTransactionHistory } from "../services/beautyBankService";
+import { onBalanceChange, getTransactionHistory, addCredits } from "../services/beautyBankService";
+import { redeemGiftCard } from "../services/giftCardService";
+import { useToast } from "../components/ui/Toast";
 import { treatments } from "../data/treatments";
 import { formatCurrency } from "../data/bankingData";
 
@@ -47,9 +50,13 @@ function getAffordability(balance: number): TreatmentAffordability[] {
 
 const Credits: React.FC = () => {
   const { user, profile } = useAuth();
+  const { showToast } = useToast();
   const [balance, setBalance] = useState(0);
   const [activity, setActivity] = useState<CreditActivity[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [giftCode, setGiftCode] = useState("");
+  const [giftLoading, setGiftLoading] = useState(false);
+  const [giftSuccess, setGiftSuccess] = useState<{ amount: number; code: string } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -77,6 +84,27 @@ const Credits: React.FC = () => {
   const tierRaw = profile?.membershipTierId ?? "";
   const displayTier = tierRaw ? tierRaw.charAt(0).toUpperCase() + tierRaw.slice(1) : "Silver";
   const affordability = getAffordability(balance);
+
+  const handleRedeemGiftCard = async () => {
+    if (!giftCode.trim() || !user) return;
+    setGiftLoading(true);
+    setGiftSuccess(null);
+    try {
+      const result = await redeemGiftCard(giftCode.trim().toUpperCase(), user.uid);
+      if (!result.success) {
+        showToast("error", "Invalid Gift Card", result.error || "Could not redeem.");
+      } else {
+        await addCredits(user.uid, result.amount, `Gift card redemption (${giftCode.trim().toUpperCase()})`);
+        setGiftSuccess({ amount: result.amount, code: giftCode.trim().toUpperCase() });
+        setGiftCode("");
+        showToast("success", `$${result.amount} added to your credits!`);
+      }
+    } catch {
+      showToast("error", "Redemption Failed", "Please try again.");
+    } finally {
+      setGiftLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -153,6 +181,44 @@ const Credits: React.FC = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Redeem Gift Card */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Redeem a Gift Card</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mt-0.5">Enter your code to add credits instantly.</p>
+          </div>
+          <Gift className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+        </div>
+        {giftSuccess ? (
+          <div className="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl p-4">
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-green-700 dark:text-green-400">${giftSuccess.amount} added to your credits!</p>
+              <p className="text-xs text-green-600 dark:text-green-500">Code {giftSuccess.code} redeemed successfully.</p>
+            </div>
+            <button onClick={() => setGiftSuccess(null)} className="ml-auto text-green-500 text-xs underline">Redeem another</button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="e.g. REFLECT-A3K9XXXX"
+              value={giftCode}
+              onChange={(e) => setGiftCode(e.target.value.toUpperCase())}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm font-mono"
+            />
+            <button
+              onClick={handleRedeemGiftCard}
+              disabled={giftLoading || !giftCode.trim()}
+              className="bg-violet-600 hover:bg-violet-700 disabled:opacity-40 text-white rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors"
+            >
+              {giftLoading ? "Redeeming..." : "Redeem"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Activity Feed */}

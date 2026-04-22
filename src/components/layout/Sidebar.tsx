@@ -13,6 +13,7 @@ import {
   Users,
   Sparkles,
   Award,
+  Gift,
 } from "lucide-react";
 
 const navigationItems = [
@@ -20,6 +21,7 @@ const navigationItems = [
   { name: "Treatments", href: "/treatments", icon: Stethoscope },
   { name: "Membership", href: "/membership", icon: Award },
   { name: "Credits", href: "/credits", icon: CreditCard },
+  { name: "Gift Cards", href: "/gift-cards", icon: Gift },
   { name: "Referrals", href: "/referrals", icon: Users },
   { name: "Appointments", href: "/appointments", icon: Calendar },
 ];
