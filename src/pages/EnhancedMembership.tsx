@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useAuth } from "../AuthContext";
 import { db } from "../firebase";
@@ -372,7 +372,7 @@ const EnhancedMembership: React.FC = () => {
                         <div className="flex flex-col items-center text-center mb-6">
                           <div 
                             className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-4 ${
-                              tier.name === 'Core' ? 'bg-[#F4EEFB] text-[#B57EDC]' :
+                              tier.name === 'Core' ? 'bg-blue-50 text-blue-600' :
                               tier.name === 'Evolve' ? 'bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB] text-white' :
                               'bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB] text-white'
                             }`}
@@ -521,7 +521,7 @@ const EnhancedMembership: React.FC = () => {
                                 ? "bg-white text-[#1F2937] hover:bg-gray-50" 
                                 : tier.name === 'Evolve' 
                                 ? "bg-[#B57EDC] text-white hover:bg-[#9F6BCB]" 
-                                : "bg-[#F4EEFB] text-[#B57EDC] hover:bg-[#E9DDF7]"
+                                : "bg-[#B57EDC] text-white hover:bg-[#9F6BCB]"
                             }`}
                           >
                           {isCurrent 
@@ -529,7 +529,7 @@ const EnhancedMembership: React.FC = () => {
                             : tier.name === 'Evolve'
                               ? "Choose Evolve"
                               : tier.name === 'Core'
-                                ? "Start Basic"
+                                ? "Get Started"
                                 : "Go Premium"
                           }
                           </Button>
