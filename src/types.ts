@@ -1,4 +1,4 @@
-export type MembershipTier = {
+﻿export type MembershipTier = {
   id: string;
   name: string;
   monthlyPrice: number;
@@ -17,15 +17,18 @@ export type Service = {
   basePrice: number;
 };
 
+export type UserRole = "user" | "admin" | "superadmin";
+
 export type UserProfile = {
   uid: string;
   name: string;
   email: string;
+  phone?: string;
   membershipTierId?: string;
   beautyBucksBalance: number;
   joinDate: string;
   status: "active" | "paused" | "canceled";
-  role: "admin" | "user";
+  role: UserRole;
 };
 
 export type Transaction = {
