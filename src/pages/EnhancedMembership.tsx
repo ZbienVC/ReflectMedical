@@ -374,7 +374,7 @@ const EnhancedMembership: React.FC = () => {
                             className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-4 ${
                               tier.name === 'Core' ? 'bg-blue-50 text-blue-600' :
                               tier.name === 'Evolve' ? 'bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB] text-white' :
-                              'bg-gradient-to-br from-[#B57EDC] to-[#9F6BCB] text-white'
+                              'bg-gradient-to-br from-[#C9A84C] to-[#E8C96A] text-[#1F2937]'
                             }`}
                           >
                             {tier.name === 'Core' ? <Shield className="w-8 h-8" /> :
@@ -427,7 +427,7 @@ const EnhancedMembership: React.FC = () => {
                           className={`rounded-2xl p-5 mb-8 text-center flex flex-col items-center justify-center ${
                             tier.name === 'Transform'
                               ? "bg-white/5 border border-white/10"
-                              : "bg-[#F4EEFB]/50 border border-[#B57EDC]/10"
+                              : "bg-violet-50 border border-violet-200"
                           }`}
                         >
                           <div 
@@ -491,7 +491,7 @@ const EnhancedMembership: React.FC = () => {
                               }`}
                             >
                               <benefit.icon className={`w-4 h-4 flex-shrink-0 ${
-                                tier.name === 'Transform' ? 'text-[#C9A84C]' : 'text-[#B57EDC]'
+                              <benefit.icon className={`w-4 h-4 flex-shrink-0 ${tier.name === "Transform" ? "text-[#C9A84C]" : tier.name === "Core" ? "text-violet-500" : "text-[#B57EDC]"}`} />
                               }`} />
                               <span className="font-medium flex items-center flex-wrap gap-2">
                                 {benefit.text}
@@ -521,7 +521,7 @@ const EnhancedMembership: React.FC = () => {
                                 ? "bg-white text-[#1F2937] hover:bg-gray-50" 
                                 : tier.name === 'Evolve' 
                                 ? "bg-[#B57EDC] text-white hover:bg-[#9F6BCB]" 
-                                : "bg-[#B57EDC] text-white hover:bg-[#9F6BCB]"
+                                : "border-2 border-[#B57EDC] text-[#B57EDC] hover:bg-[#B57EDC] hover:text-white bg-white"
                             }`}
                           >
                           {isCurrent 
