@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Mail, Phone, Calendar, Edit3, Key, AlertTriangle, Check, X } from "lucide-react";
+import { User, Mail, Phone, Calendar, Edit3, Key, AlertTriangle, Check, X, Stethoscope } from "lucide-react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
+import { physicians, membershipTiers } from "../data/practiceData";
 
 interface ProfileData {
   firstName: string;
@@ -106,6 +107,18 @@ const Profile: React.FC = () => {
     ? data.membershipTier.charAt(0).toUpperCase() + data.membershipTier.slice(1)
     : "No Membership";
 
+  const tierData = data.membershipTier
+    ? membershipTiers.find((t) => t.id === data.membershipTier.toLowerCase())
+    : null;
+
+  const tierColors: Record<string, string> = {
+    core: "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-700",
+    evolve: "bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-700",
+    transform: "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700",
+  };
+
+  const primaryPhysician = physicians[0];
+
   return (
     <div className="space-y-6 pb-12 max-w-2xl mx-auto">
       <div>
@@ -122,8 +135,11 @@ const Profile: React.FC = () => {
           <p className="text-gray-900 dark:text-white font-bold text-lg">{data.firstName} {data.lastName}</p>
           <p className="text-gray-500 dark:text-gray-400 text-sm">{data.email}</p>
           {data.membershipTier && (
-            <span className="inline-block mt-1.5 text-xs font-semibold px-3 py-0.5 rounded-full bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-700">
+            <span className={`inline-block mt-1.5 text-xs font-semibold px-3 py-0.5 rounded-full border ${
+              tierColors[data.membershipTier.toLowerCase()] || "bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-700"
+            }`}>
               {tierLabel} Member
+              {tierData && ` · $${tierData.monthlyPrice}/mo`}
             </span>
           )}
         </div>
@@ -227,6 +243,33 @@ const Profile: React.FC = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Your Provider */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <Stethoscope className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+          Your Provider
+        </h2>
+        <div className="flex items-center gap-4">
+          <img
+            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(primaryPhysician.name)}&background=B57EDC&color=fff&size=200`}
+            alt={primaryPhysician.name}
+            className="w-16 h-16 rounded-2xl object-cover flex-shrink-0 shadow-md"
+          />
+          <div>
+            <p className="font-bold text-gray-900 dark:text-white">{primaryPhysician.name}</p>
+            <p className="text-violet-600 dark:text-violet-400 text-sm">{primaryPhysician.title}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">{primaryPhysician.experience} Experience</p>
+            <div className="flex flex-wrap gap-1 mt-2">
+              {primaryPhysician.specialties.slice(0, 2).map((s) => (
+                <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border border-violet-100 dark:border-violet-800">
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Account Actions */}

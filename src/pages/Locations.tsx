@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { practiceInfo, physicians, realStats } from "../data/practiceData";
+import { practiceInfo, physicians, realStats, realReviews } from "../data/practiceData";
+import { MemberStories } from "../components/MemberStories";
 import { 
   MapPin, 
   Phone, 
@@ -12,7 +13,10 @@ import {
   ExternalLink,
   Users,
   Award,
-  Shield
+  Shield,
+  GraduationCap,
+  BadgeCheck,
+  Quote
 } from "lucide-react";
 
 const Locations: React.FC = () => {
@@ -197,29 +201,90 @@ const Locations: React.FC = () => {
               Our board-certified professionals bring years of experience in aesthetic medicine
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {physicians.map((physician, index) => (
-              <motion.div
-                key={physician.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 text-center"
-              >
-                <div className="w-16 h-16 bg-gradient-to-br from-violet-600 to-violet-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{physician.name}</h3>
-                <p className="text-violet-600 dark:text-violet-400 font-medium text-sm mb-2">{physician.title}</p>
-                <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">{physician.specialties?.join(", ")}</p>
-                <div className="flex items-center justify-center gap-1 mt-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                  ))}
-                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">Excellent Reviews</span>
-                </div>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {physicians.map((physician, index) => {
+              const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(physician.name)}&background=B57EDC&color=fff&size=200`;
+              return (
+                <motion.div
+                  key={physician.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <img
+                      src={avatarUrl}
+                      alt={physician.name}
+                      className="w-20 h-20 rounded-2xl object-cover flex-shrink-0 shadow-md"
+                      onError={(e) => { (e.target as HTMLImageElement).src = avatarUrl; }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">{physician.name}</h3>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-700">
+                          {physician.experience}
+                        </span>
+                      </div>
+                      <p className="text-violet-600 dark:text-violet-400 font-medium text-sm mt-0.5">{physician.title}</p>
+                      <div className="flex items-center gap-1 mt-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-current" />
+                        ))}
+                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">Highly Rated</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bio */}
+                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-4">{physician.bio}</p>
+
+                  {/* Specialties */}
+                  <div className="mb-4">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Specialties</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {physician.specialties.map((s) => (
+                        <span key={s} className="text-xs px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border border-violet-100 dark:border-violet-800">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Education */}
+                  {"education" in physician && Array.isArray((physician as any).education) && (
+                    <div className="mb-4">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                        <GraduationCap className="w-3.5 h-3.5" /> Education
+                      </p>
+                      <ul className="space-y-1">
+                        {((physician as any).education as string[]).map((edu: string) => (
+                          <li key={edu} className="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-1.5">
+                            <span className="text-violet-400 mt-0.5">•</span>{edu}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Certifications */}
+                  {physician.certifications && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                        <BadgeCheck className="w-3.5 h-3.5" /> Certifications
+                      </p>
+                      <ul className="space-y-1">
+                        {physician.certifications.map((cert) => (
+                          <li key={cert} className="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-1.5">
+                            <span className="text-green-500 mt-0.5">✓</span>{cert}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -235,7 +300,7 @@ const Locations: React.FC = () => {
             { icon: Users, number: `${realStats.patientsServed.toLocaleString()}+`, label: "Patients Served" },
             { icon: Award, number: `${realStats.satisfactionRate}%`, label: "Satisfaction Rate" },
             { icon: Star, number: `${realStats.averageRating}/5`, label: "Average Rating" },
-            { icon: Shield, number: "15+", label: "Years Experience" }
+            { icon: Shield, number: `${realStats.yearsInBusiness}+`, label: "Years in Business" }
           ].map((stat, index) => (
             <motion.div
               key={index}
@@ -252,6 +317,56 @@ const Locations: React.FC = () => {
             </motion.div>
           ))}
         </div>
+      </div>
+
+      {/* Patient Reviews Section */}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">What Our Patients Say</h2>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Verified reviews from real Reflect members</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {realReviews.map((review, index) => (
+            <motion.div
+              key={review.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.08 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5"
+            >
+              <div className="flex items-center gap-1 mb-3">
+                {[...Array(review.rating)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <div className="flex items-start gap-2 mb-3">
+                <Quote className="w-4 h-4 text-violet-300 dark:text-violet-600 flex-shrink-0 mt-0.5" />
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed italic">{review.text}</p>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{review.name}</p>
+                  <p className="text-xs text-gray-400">{review.treatment}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border border-violet-100 dark:border-violet-800">
+                    {review.membershipTier}
+                  </span>
+                  {review.verified && (
+                    <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-0.5">
+                      <BadgeCheck className="w-3 h-3" /> Verified
+                    </span>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Member Stories Component */}
+      <div className="-mx-4 sm:-mx-6 lg:-mx-8">
+        <MemberStories />
       </div>
     </div>
   );

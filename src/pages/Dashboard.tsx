@@ -8,12 +8,17 @@ import {
   Gift,
   Clock,
   Zap,
+  Users,
+  Star,
+  Award,
+  Shield,
 } from "lucide-react";
 
 import { useAuth } from "../AuthContext";
 import { onBalanceChange } from "../services/beautyBankService";
 import { getBookings } from "../services/treatmentService";
 import BookingModal from "../components/BookingModal";
+import { realStats, membershipTiers } from "../data/practiceData";
 
 interface Transaction {
   id: string;
@@ -60,6 +65,10 @@ const Dashboard: React.FC = () => {
     ? profile.membershipTierId.charAt(0).toUpperCase() + profile.membershipTierId.slice(1)
     : null;
   const completedCount = transactions.filter((t) => t.status === "completed").length;
+
+  const currentTierData = profile?.membershipTierId
+    ? membershipTiers.find((t) => t.id === profile.membershipTierId)
+    : null;
 
   const popularTreatments = [
     { id: "botox", name: "Botox", price: 14, priceLabel: "from $14/unit", description: "Smooth fine lines naturally.", duration: "15–30 min" },
@@ -225,6 +234,66 @@ const Dashboard: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Why Reflect — Practice Stats */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Why Reflect</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { icon: <Users className="w-5 h-5 text-violet-600 dark:text-violet-400" />, value: `${realStats.patientsServed.toLocaleString()}+`, label: "Patients Served" },
+            { icon: <Award className="w-5 h-5 text-violet-600 dark:text-violet-400" />, value: `${realStats.satisfactionRate}%`, label: "Satisfaction Rate" },
+            { icon: <Star className="w-5 h-5 text-violet-600 dark:text-violet-400" />, value: `${realStats.averageRating} ★`, label: "Avg Rating" },
+            { icon: <Shield className="w-5 h-5 text-violet-600 dark:text-violet-400" />, value: `${realStats.yearsInBusiness} Yrs`, label: "In Business" },
+          ].map((s) => (
+            <motion.div
+              key={s.label}
+              className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 text-center"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center mx-auto mb-3">
+                {s.icon}
+              </div>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">{s.value}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">{s.label}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Current Membership Tier Details */}
+      {currentTierData && (
+        <motion.div
+          className="bg-gradient-to-r from-violet-600 to-violet-700 dark:from-violet-700 dark:to-violet-800 rounded-2xl shadow-sm p-6 text-white"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-violet-200 text-sm font-medium mb-1">Your Membership</p>
+              <h3 className="text-2xl font-bold">{currentTierData.name} Plan</h3>
+              <p className="text-violet-100 text-sm mt-1">{currentTierData.description}</p>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <p className="text-violet-200 text-xs">Monthly Credits</p>
+              <p className="text-3xl font-black">${currentTierData.monthlyCredits}</p>
+              <p className="text-violet-200 text-xs mt-1">Botox from ${currentTierData.toxinDiscountBotox}/unit</p>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-violet-500/50">
+            <p className="text-violet-200 text-xs font-semibold uppercase tracking-wider mb-2">Your Benefits</p>
+            <div className="flex flex-wrap gap-2">
+              {currentTierData.benefits.slice(0, 4).map((b) => (
+                <span key={b} className="text-xs bg-white/10 border border-white/20 px-2.5 py-1 rounded-full">
+                  {b}
+                </span>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Quick Actions */}
       <div>
