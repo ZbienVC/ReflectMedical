@@ -10,6 +10,7 @@ import Catalog from "./pages/Catalog";
 import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
 import AdminBookings from "./pages/AdminBookings";
+import AdminUsers from "./pages/AdminUsers";
 import GiftCards from "./pages/GiftCards";
 import AdminGiftCards from "./pages/AdminGiftCards";
 import Credits from "./pages/Credits";
@@ -31,7 +32,9 @@ const PrivateRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }>
 
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
-  if (adminOnly && profile?.role !== "admin") return <Navigate to="/dashboard" replace />;
+  if (adminOnly && !["admin", "superadmin"].includes(profile?.role || "")) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return <>{children}</>;
 };
@@ -72,6 +75,7 @@ export default function App() {
                   <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
                   <Route path="/admin" element={<PrivateRoute adminOnly><Admin /></PrivateRoute>} />
                   <Route path="/admin/bookings" element={<PrivateRoute adminOnly><AdminBookings /></PrivateRoute>} />
+                  <Route path="/admin/users" element={<PrivateRoute adminOnly><AdminUsers /></PrivateRoute>} />
                   <Route path="/gift-cards" element={<PrivateRoute><GiftCards /></PrivateRoute>} />
                   <Route path="/admin/gift-cards" element={<PrivateRoute adminOnly><AdminGiftCards /></PrivateRoute>} />
 
