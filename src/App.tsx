@@ -1,6 +1,7 @@
-import React from "react";
+﻿import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
+import { ThemeProvider } from "./ThemeContext";
 import Dashboard from "./pages/Dashboard";
 import EnhancedMembership from "./pages/EnhancedMembership";
 import Treatments from "./pages/Treatments";
@@ -38,47 +39,49 @@ const PrivateRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }>
 export default function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <ToastProvider>
-          <Router>
-          <AppLayout>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+      <ThemeProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <Router>
+              <AppLayout>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<SignUp />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
 
-              {/* Root redirect */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  {/* Root redirect */}
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-              {/* Protected routes */}
-              <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-              <Route path="/membership" element={<PrivateRoute><EnhancedMembership /></PrivateRoute>} />
-              <Route path="/memberships" element={<Navigate to="/membership" replace />} />
-              <Route path="/treatments" element={<PrivateRoute><Treatments /></PrivateRoute>} />
-              <Route path="/locations" element={<PrivateRoute><Locations /></PrivateRoute>} />
-              <Route path="/catalog" element={<PrivateRoute><Catalog /></PrivateRoute>} />
-              <Route path="/credits" element={<PrivateRoute><Credits /></PrivateRoute>} />
-              <Route path="/wallet" element={<Navigate to="/credits" replace />} />
-              <Route path="/banking" element={<Navigate to="/credits" replace />} />
-              <Route path="/referrals" element={<PrivateRoute><ReferralCenter /></PrivateRoute>} />
-              <Route path="/appointments" element={<PrivateRoute><Appointments /></PrivateRoute>} />
-              <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-              <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
-              <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
-              <Route path="/checkout/:serviceId" element={<PrivateRoute><Checkout /></PrivateRoute>} />
-              <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-              <Route path="/admin" element={<PrivateRoute adminOnly><Admin /></PrivateRoute>} />
-              <Route path="/admin/bookings" element={<PrivateRoute adminOnly><AdminBookings /></PrivateRoute>} />
-              <Route path="/gift-cards" element={<PrivateRoute><GiftCards /></PrivateRoute>} />
-              <Route path="/admin/gift-cards" element={<PrivateRoute adminOnly><AdminGiftCards /></PrivateRoute>} />
+                  {/* Protected routes */}
+                  <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+                  <Route path="/membership" element={<PrivateRoute><EnhancedMembership /></PrivateRoute>} />
+                  <Route path="/memberships" element={<Navigate to="/membership" replace />} />
+                  <Route path="/treatments" element={<PrivateRoute><Treatments /></PrivateRoute>} />
+                  <Route path="/locations" element={<PrivateRoute><Locations /></PrivateRoute>} />
+                  <Route path="/catalog" element={<PrivateRoute><Catalog /></PrivateRoute>} />
+                  <Route path="/credits" element={<PrivateRoute><Credits /></PrivateRoute>} />
+                  <Route path="/wallet" element={<Navigate to="/credits" replace />} />
+                  <Route path="/banking" element={<Navigate to="/credits" replace />} />
+                  <Route path="/referrals" element={<PrivateRoute><ReferralCenter /></PrivateRoute>} />
+                  <Route path="/appointments" element={<PrivateRoute><Appointments /></PrivateRoute>} />
+                  <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+                  <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
+                  <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
+                  <Route path="/checkout/:serviceId" element={<PrivateRoute><Checkout /></PrivateRoute>} />
+                  <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+                  <Route path="/admin" element={<PrivateRoute adminOnly><Admin /></PrivateRoute>} />
+                  <Route path="/admin/bookings" element={<PrivateRoute adminOnly><AdminBookings /></PrivateRoute>} />
+                  <Route path="/gift-cards" element={<PrivateRoute><GiftCards /></PrivateRoute>} />
+                  <Route path="/admin/gift-cards" element={<PrivateRoute adminOnly><AdminGiftCards /></PrivateRoute>} />
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AppLayout>
-        </Router>
-        </ToastProvider>
-      </AuthProvider>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AppLayout>
+            </Router>
+          </ToastProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
