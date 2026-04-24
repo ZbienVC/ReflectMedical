@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useAuth } from "../AuthContext";
 import { db } from "../firebase";
@@ -31,7 +31,7 @@ const EnhancedMembership: React.FC = () => {
   const { profile, user } = useAuth();
   const [tiers, setTiers] = useState<any[]>(membershipTiers);
   const [loading, setLoading] = useState(false);
-  const [isAnnual, setIsAnnual] = useState(true);
+  const [isAnnual, setIsAnnual] = useState(false);
   const [hoveredTier, setHoveredTier] = useState<string | null>(null);
   const { showToast } = useToast();
 
@@ -344,7 +344,7 @@ const EnhancedMembership: React.FC = () => {
                           ? "bg-white border-2 border-black/5 shadow-lg hover:shadow-xl hover:border-[#B57EDC]/20 transition-all duration-300"
                         : tier.name === 'Evolve'
                           ? "bg-gradient-to-br from-white via-white to-[#B57EDC]/5 border-2 border-[#B57EDC] shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 ring-2 ring-[#B57EDC]/20"
-                        : "bg-gradient-to-br from-[#1F2937] via-gray-900 to-gray-800 text-white border-2 border-[#B57EDC] shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 ring-2 ring-[#B57EDC]/30"
+                        : "bg-gradient-to-br from-[#1F2937] via-[#1a1040] to-[#0f172a] text-white border-2 border-[#C9A84C]/60 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 ring-2 ring-[#C9A84C]/20"
                       }`}
                     >
                       {isPopular && (
@@ -359,7 +359,7 @@ const EnhancedMembership: React.FC = () => {
 
                       {tier.name === 'Transform' && (
                         <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-30">
-                          <div className="bg-gradient-to-r from-[#1F2937] to-gray-800 text-white px-6 py-3 rounded-full shadow-2xl border-4 border-white">
+                          <div className="bg-gradient-to-r from-[#C9A84C] to-[#E8C96A] text-[#1F2937] px-6 py-3 rounded-full shadow-2xl border-4 border-white">
                             <span className="font-black text-sm uppercase tracking-widest">
                               Premium
                             </span>
@@ -491,7 +491,7 @@ const EnhancedMembership: React.FC = () => {
                               }`}
                             >
                               <benefit.icon className={`w-4 h-4 flex-shrink-0 ${
-                                tier.name === 'Transform' ? 'text-[#B57EDC]' : 'text-[#B57EDC]'
+                                tier.name === 'Transform' ? 'text-[#C9A84C]' : 'text-[#B57EDC]'
                               }`} />
                               <span className="font-medium flex items-center flex-wrap gap-2">
                                 {benefit.text}
