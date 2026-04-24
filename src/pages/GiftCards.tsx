@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Gift,
@@ -134,8 +134,9 @@ const GiftCards: React.FC = () => {
       });
       setPurchasedCard(card);
       showToast("success", "Gift Card Purchased!");
-    } catch (err) {
-      showToast("error", "Purchase Failed", "Please try again.");
+    } catch (err: any) {
+      console.error('[GiftCards] Purchase error:', err?.message || err, err?.code);
+      showToast("error", "Purchase Failed", err?.message?.slice(0, 80) || "Please try again.");
     } finally {
       setLoading(false);
     }

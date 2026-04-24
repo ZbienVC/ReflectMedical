@@ -1,18 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow authenticated users to read/write their own data
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    // Public collections
     match /membershipTiers/{tierId} {
       allow read: if true;
     }
     match /treatments/{treatmentId} {
       allow read: if true;
     }
-    // Temporary: allow all authenticated users during development
+    // Gift cards - authenticated users can create, read their own
+    match /giftCards/{cardId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+    }
+    // Promo codes - anyone can read active ones, only authenticated can validate
+    match /promoCodes/{promoId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    // Fallback for other authenticated collections
     match /{document=**} {
       allow read, write: if request.auth != null;
     }

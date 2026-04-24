@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import { logOut } from "../../firebase";
@@ -35,6 +35,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return <>{children}</>;
   }
 
+  const isAdmin = profile?.role === "admin";
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Membership", href: "/membership", icon: Sparkles },
@@ -46,6 +47,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { name: "Locations", href: "/locations", icon: MapPin },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
+  const adminItems = isAdmin ? [
+    { name: "Admin: Gift Cards", href: "/admin/gift-cards", icon: Gift },
+    { name: "Admin: Bookings", href: "/admin/bookings", icon: Calendar },
+  ] : [];
 
   const handleSignOut = async () => {
     await logOut();
@@ -64,7 +69,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </div>
 
         <nav className="flex-1 px-4 space-y-1 mt-2">
-          {navItems.map((item) => {
+          {[...navItems, ...adminItems].map((item) => {
             const isActive = location.pathname === item.href;
             return (
               <Link
