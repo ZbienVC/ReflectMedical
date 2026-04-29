@@ -23,6 +23,7 @@ import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
 import Onboarding from "./pages/Onboarding";
 import Profile from "./pages/Profile";
+import Landing from "./pages/Landing";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AppLayout from "./components/layout/AppLayout";
 import { ToastProvider } from "./components/ui/Toast";
@@ -39,6 +40,20 @@ const PrivateRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }>
   return <>{children}</>;
 };
 
+// Smart root route — landing for guests, dashboard for logged-in users
+const RootRoute: React.FC = () => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user ? <Navigate to="/dashboard" replace /> : <Landing />;
+};
+
+// Public-only routes — redirect logged-in users to dashboard
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user ? <Navigate to="/dashboard" replace /> : <>{children}</>;
+};
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -48,13 +63,13 @@ export default function App() {
             <Router>
               <AppLayout>
                 <Routes>
-                  {/* Public routes */}
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  {/* Smart root */}
+                  <Route path="/" element={<RootRoute />} />
 
-                  {/* Root redirect */}
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  {/* Public routes */}
+                  <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                  <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
 
                   {/* Protected routes */}
                   <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />

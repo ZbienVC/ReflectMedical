@@ -24,7 +24,7 @@ interface AppLayoutProps {
   children: React.ReactNode;
 }
 
-const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password"];
+const PUBLIC_ROUTES = ["/", "/login", "/signup", "/forgot-password"];
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const { user, profile } = useAuth();
